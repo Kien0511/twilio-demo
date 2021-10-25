@@ -4,6 +4,8 @@ import 'package:test_twilio/model/channel_model.dart';
 import 'package:test_twilio/network/api_result.dart';
 import 'package:test_twilio/repository/user_chat_repository.dart';
 import 'package:test_twilio/services/arguments/basic_chat_client_argument.dart';
+import 'package:test_twilio/services/arguments/create_channel_argument.dart';
+import 'package:test_twilio/services/arguments/update_message_argument.dart';
 import 'package:test_twilio/ui/login/controller/login_controller.dart';
 
 class BasicChatChannel {
@@ -20,6 +22,8 @@ class BasicChatChannel {
 
   Function? _refreshChannelListCallback;
   Function? _refreshMessagesListCallback;
+  Function? _onMessageDelete;
+  Function? _onMessageUpdate;
 
   void setRefreshChannelListCallback(Function refreshChannelListCallback) {
     this._refreshChannelListCallback = refreshChannelListCallback;
@@ -37,6 +41,22 @@ class BasicChatChannel {
     _refreshMessagesListCallback = null;
   }
 
+  void setMessageDeleteCallback(Function onMessageDelete) {
+    this._onMessageDelete = onMessageDelete;
+  }
+
+  void removeMessageDeleteCallback() {
+    this._onMessageDelete = null;
+  }
+
+  void setMessageUpdateCallback(Function onMessageUpdate) {
+    this._onMessageUpdate = onMessageUpdate;
+  }
+
+  void removeMessageUpdateCallback() {
+    this._onMessageUpdate = null;
+  }
+
   void initMethodChannel(UserChatRepository userChatRepository) {
     this._userChatRepository = userChatRepository;
     _methodChannel = MethodChannel(_chatChannel);
@@ -50,6 +70,12 @@ class BasicChatChannel {
           break;
         case MethodChannelChat.generateNewAccessToken:
           generateNewAccessToken();
+          break;
+        case MethodChannelChat.deleteMessageSuccess:
+          _onMessageDelete?.call(call.arguments);
+          break;
+        case MethodChannelChat.updateMessageSuccess:
+          _onMessageUpdate?.call(call.arguments);
           break;
       }
     });
@@ -91,6 +117,14 @@ class BasicChatChannel {
     }
   }
 
+  void deleteMessage(String messageId) {
+      _methodChannel?.invokeMethod(MethodChannelChat.deleteMessage, messageId);
+  }
+
+  void updateMessage(String messageId, String messageBody) {
+      _methodChannel?.invokeMethod(MethodChannelChat.updateMessage, UpdateMessageArgument(messageId, messageBody).toMap());
+  }
+
   void generateNewAccessToken() async {
     final ApiResult<AccessTokenResponse> result = await _userChatRepository!.getAccessToken(author);
     result.when(success: (AccessTokenResponse data) {
@@ -98,6 +132,19 @@ class BasicChatChannel {
     }, failure: (error) {
       print("generate new token error: $error");
     });
+  }
+
+  Future<dynamic> createChannel(String channelName, int channelType) async {
+    try {
+      final result = await _methodChannel?.invokeMethod(MethodChannelChat.createChannel, CreateChannelArgument(channelName, channelType).toMap());
+      return result;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  void inviteByIdentity(String identity) {
+    _methodChannel?.invokeMethod(MethodChannelChat.inviteByIdentity, identity);
   }
 }
 
@@ -112,4 +159,10 @@ class MethodChannelChat {
   static const String joinChannel = "joinChannel";
   static const String generateNewAccessToken = "generateNewAccessToken";
   static const String generateNewAccessSuccess = "generateNewAccessSuccess";
+  static const String deleteMessage = "deleteMessage";
+  static const String deleteMessageSuccess = "deleteMessageSuccess";
+  static const String updateMessage = "updateMessage";
+  static const String updateMessageSuccess = "updateMessageSuccess";
+  static const String createChannel = "createChannel";
+  static const String inviteByIdentity = "inviteByIdentity";
 }

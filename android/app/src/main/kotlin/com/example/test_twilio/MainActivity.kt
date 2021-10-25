@@ -1,7 +1,6 @@
 package com.example.test_twilio
 
-import com.example.test_twilio.arguments.BasicChatClientArgument
-import com.example.test_twilio.arguments.ChannelArgument
+import com.example.test_twilio.arguments.*
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
@@ -45,6 +44,18 @@ class MainActivity: FlutterActivity(), MainActivityCallback {
                 MethodChannelChat.generateNewAccessSuccess -> {
                     TwilioApplication.instance.basicClient.updateAccessToken(call.arguments as String)
                 }
+                MethodChannelChat.deleteMessage -> {
+                    TwilioApplication.instance.basicClient.deleteMessage(call.arguments as String)
+                }
+                MethodChannelChat.updateMessage -> {
+                    TwilioApplication.instance.basicClient.updateMessage(UpdateMessageArgument.fromMap(call.arguments as HashMap<String, Any>))
+                }
+                MethodChannelChat.createChannel -> {
+                    TwilioApplication.instance.basicClient.createChannel(CreateChannelArgument.fromMap(call.arguments as HashMap<String, Any>))
+                }
+                MethodChannelChat.inviteByIdentity -> {
+                    TwilioApplication.instance.basicClient.inviteByIdentity(call.arguments as String)
+                }
             }
         }
     }
@@ -72,6 +83,18 @@ class MainActivity: FlutterActivity(), MainActivityCallback {
     override fun generateNewAccessToken() {
         methodChannel?.invokeMethod(MethodChannelChat.generateNewAccessToken, null)
     }
+
+    override fun removeMessageSuccess(messageItemArgument: MessageItemArgument) {
+        methodChannel?.invokeMethod(MethodChannelChat.deleteMessageSuccess, messageItemArgument.toMap())
+    }
+
+    override fun updateMessageSuccess(messageItemArgument: MessageItemArgument) {
+        methodChannel?.invokeMethod(MethodChannelChat.updateMessageSuccess, messageItemArgument.toMap())
+    }
+
+    override fun createChannelResult(result: Any) {
+        flutterResult?.success(result)
+    }
 }
 
 class MethodChannelChat {
@@ -86,6 +109,12 @@ class MethodChannelChat {
         const val joinChannel = "joinChannel"
         const val generateNewAccessToken = "generateNewAccessToken"
         const val generateNewAccessSuccess = "generateNewAccessSuccess"
+        const val deleteMessage = "deleteMessage"
+        const val deleteMessageSuccess = "deleteMessageSuccess"
+        const val updateMessage = "updateMessage"
+        const val updateMessageSuccess = "updateMessageSuccess"
+        const val createChannel = "createChannel"
+        const val inviteByIdentity = "inviteByIdentity"
     }
 }
 
@@ -96,4 +125,7 @@ interface MainActivityCallback {
    fun joinChannelSuccess()
    fun joinChannelError()
    fun generateNewAccessToken()
+   fun removeMessageSuccess(messageItemArgument: MessageItemArgument)
+   fun updateMessageSuccess(messageItemArgument: MessageItemArgument)
+   fun createChannelResult(result: Any)
 }

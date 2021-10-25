@@ -16,6 +16,14 @@ class ChatScreen extends GetView<ChatController> {
       child: Scaffold(
         appBar: AppBar(
           title: Text("Chat screen"),
+          actions: [
+            InkWell(
+              onTap: () {
+                controller.inviteByIdentity();
+              },
+              child: Icon(Icons.add, size: 24.0,),
+            ),
+          ],
         ),
         body: Column(
           children: [
@@ -71,10 +79,15 @@ class ChatScreen extends GetView<ChatController> {
           constraints: BoxConstraints(
             maxWidth: 256.0
           ),
-          child: Container(
-              color: Colors.blue,
-              padding: EdgeInsets.only(left: 8.0, right: 8.0, top: 4.0, bottom: 4.0),
-              child: Text("${messageItem.message?.messageBody}", textAlign: TextAlign.right,)),
+          child: InkWell(
+            onLongPress: () {
+              controller.showMessageListAction(messageItem);
+            },
+            child: Container(
+                color: Colors.blue,
+                padding: EdgeInsets.only(left: 8.0, right: 8.0, top: 4.0, bottom: 4.0),
+                child: Text("${messageItem.message?.messageBody}", textAlign: TextAlign.right,)),
+          ),
         )
       ],
     );

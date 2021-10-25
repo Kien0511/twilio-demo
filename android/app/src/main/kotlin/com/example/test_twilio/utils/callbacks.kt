@@ -13,7 +13,6 @@ class ChatCallbackListener<T>(val fail: ErrorCallback = {},
     override fun onSuccess(p0: T) = success(p0)
 
     override fun onError(err: ErrorInfo) {
-        TwilioApplication.instance.showError(err)
         fail(err)
     }
 }
@@ -24,7 +23,6 @@ open class ChatStatusListener(val fail: ErrorCallback = {},
     override fun onSuccess() = success()
 
     override fun onError(err: ErrorInfo) {
-        TwilioApplication.instance.showError(err)
         fail(err)
     }
 }

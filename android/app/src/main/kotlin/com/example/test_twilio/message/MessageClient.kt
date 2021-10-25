@@ -1,6 +1,7 @@
 package com.example.test_twilio.message
 
 import ChatCallbackListener
+import ChatStatusListener
 import android.util.Log
 import com.example.test_twilio.BasicChatClientCallback
 import com.example.test_twilio.arguments.MessageItemArgument
@@ -36,7 +37,7 @@ class MessageClient: ChannelListener{
     }
 
     fun getLastMessage(count: Int = 50) {
-        channel?.messages?.getLastMessages(count, ChatCallbackListener<List<Message>>() {
+        channel?.messages?.getLastMessages(count, ChatCallbackListener<List<Message>> {
             messageItemList.clear()
             val members = channel?.members
             members?.let { membersList ->
@@ -58,10 +59,29 @@ class MessageClient: ChannelListener{
         }
     }
 
-    override fun onMessageUpdated(p0: Message?, p1: Message.UpdateReason?) {
+    override fun onMessageUpdated(message: Message?, p1: Message.UpdateReason?) {
+        Log.e(this@MessageClient.javaClass.name, "onMessageUpdated ${message.toString()}")
+        message?.let { messageUpdate ->
+            channel?.members?.let {
+                val index = messageItemList.indexOfFirst { messageItemArgument -> messageItemArgument.message.sid == messageUpdate.sid }
+                val messageItemArgument = MessageItemArgument(messageUpdate, it)
+                if (index != -1) {
+                    messageItemList.removeAt(index)
+                    messageItemList.add(index, messageItemArgument)
+                }
+                listener?.updateMessageSuccess(messageItemArgument)
+            }
+        }
     }
 
-    override fun onMessageDeleted(p0: Message?) {
+    override fun onMessageDeleted(message: Message?) {
+        Log.e(this@MessageClient.javaClass.name, "onMessageDeleted ${message.toString()}")
+        message?.let { messageDelete ->
+            channel?.members?.let {
+                messageItemList.removeIf { t: MessageItemArgument -> t.message.sid == messageDelete.sid }
+                listener?.removeMessageSuccess(MessageItemArgument(messageDelete, it))
+            }
+        }
     }
 
     override fun onMemberAdded(member: Member?) {
@@ -86,11 +106,11 @@ class MessageClient: ChannelListener{
     }
 
     fun removeListener() {
-        channel?.removeListener(this);
+        channel?.removeListener(this)
     }
 
     fun addListener() {
-        channel?.addListener(this);
+        channel?.addListener(this)
     }
 
     fun sendMessage(message: String) {
@@ -99,5 +119,48 @@ class MessageClient: ChannelListener{
         }, fail = {
             Log.e(this@MessageClient.javaClass.simpleName, "send message callback error: $it")
         }) )
+    }
+
+    fun deleteMessage(messageId: String) {
+        val messageItemArgument = messageItemList.firstOrNull {
+            it.message.sid == messageId
+        }
+        messageItemArgument?.let {
+            channel?.messages?.removeMessage(it.message, ChatStatusListener(
+                    success = {
+                        Log.e(this@MessageClient.javaClass.simpleName, "delete message callback success")
+                    },
+                    fail = { errorInfo ->
+                        Log.e(this@MessageClient.javaClass.simpleName, "delete message callback failed: $errorInfo")
+                    }
+            ))
+        }
+    }
+
+    fun updateMessage(messageId: String?, body: String?) {
+        val messageItemArgument = messageItemList.firstOrNull {
+            it.message.sid == messageId
+        }
+        messageItemArgument?.let {
+            it.message.updateMessageBody(body, ChatStatusListener (
+                    success = {
+                        Log.e(this@MessageClient.javaClass.simpleName, "update message callback success")
+                    },
+                    fail = { errorInfo ->
+                        Log.e(this@MessageClient.javaClass.simpleName, "update message callback failed: $errorInfo")
+                    }
+                    ))
+        }
+    }
+
+    fun inviteByIdentity(identity: String) {
+        channel?.members?.inviteByIdentity(identity, ChatStatusListener(
+                success = {
+                    Log.e(this@MessageClient.javaClass.simpleName, "inviteByIdentity callback success")
+                },
+                fail = { errorInfo ->
+                    Log.e(this@MessageClient.javaClass.simpleName, "inviteByIdentity callback failed: $errorInfo")
+                }
+        ))
     }
 }

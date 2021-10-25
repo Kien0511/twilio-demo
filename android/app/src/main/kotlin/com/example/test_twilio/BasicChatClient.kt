@@ -6,10 +6,12 @@ import ToastStatusListener
 import android.content.Context
 import android.util.Log
 import com.example.test_twilio.arguments.ChannelArgument
+import com.example.test_twilio.arguments.CreateChannelArgument
 import com.example.test_twilio.arguments.MessageItemArgument
+import com.example.test_twilio.arguments.UpdateMessageArgument
 import com.example.test_twilio.message.MessageClient
 import com.twilio.chat.*
-import java.util.HashMap
+import java.util.*
 
 class BasicChatClient(private val context: Context)
     : CallbackListener<ChatClient>()
@@ -21,8 +23,7 @@ class BasicChatClient(private val context: Context)
     private var listener: MainActivityCallback? = null
     private var messageClient: MessageClient? = null
 
-    var chatClient: ChatClient? = null
-        private set
+    private var chatClient: ChatClient? = null
 
     init {
         if (BuildConfig.DEBUG) {
@@ -71,19 +72,18 @@ class BasicChatClient(private val context: Context)
     fun createClient(accessToken: String?, firebaseToken: String?) {
         this.accessToken = accessToken
         this.fcmToken = firebaseToken
-        if (chatClient == null) {
-            val props = ChatClient.Properties.Builder()
-                    .setRegion("us1")
-                    .setDeferCertificateTrustToPlatform(false)
-                    .createProperties()
-
-            ChatClient.create(context.applicationContext,
-                    this.accessToken!!,
-                    props,
-                    this)
-        } else {
-            listener?.onCreateBasicChatClientComplete()
+        if (chatClient != null) {
+            shutdown()
         }
+        val props = ChatClient.Properties.Builder()
+                .setRegion("us1")
+                .setDeferCertificateTrustToPlatform(false)
+                .createProperties()
+
+        ChatClient.create(context.applicationContext,
+                this.accessToken!!,
+                props,
+                this)
     }
 
     fun updateAccessToken(accessToken: String?) {
@@ -100,7 +100,8 @@ class BasicChatClient(private val context: Context)
         }
     }
 
-    fun shutdown() {
+    private fun shutdown() {
+        chatClient!!.removeListener(this)
         chatClient!!.shutdown()
         chatClient = null // Client no longer usable after shutdown()
     }
@@ -108,6 +109,7 @@ class BasicChatClient(private val context: Context)
     // Client created, remember the reference and set up UI
     override fun onSuccess(client: ChatClient) {
         chatClient = client
+        chatClient?.addListener(this)
 
         if (fcmToken != null) {
             setupFcmToken()
@@ -118,7 +120,6 @@ class BasicChatClient(private val context: Context)
 
     // Client not created, fail
     override fun onError(errorInfo: ErrorInfo?) {
-        TwilioApplication.instance.logErrorInfo("Login error", errorInfo!!)
         chatClient = null
     }
 
@@ -227,7 +228,7 @@ class BasicChatClient(private val context: Context)
     }
 
     fun getMessages(channelArgument: ChannelArgument) {
-        Log.e(this.javaClass.simpleName, "getMessages: ${channelArgument.toString()}")
+        Log.e(this.javaClass.simpleName, "getMessages: $channelArgument")
         val channelModel = channels[channelArgument.sid]
         channelModel?.getChannel(object : CallbackListener<Channel>() {
             override fun onSuccess(channel: Channel?) {
@@ -277,8 +278,50 @@ class BasicChatClient(private val context: Context)
             }
         })
     }
+
+    fun deleteMessage(messageId: String) {
+        messageClient?.deleteMessage(messageId)
+    }
+
+    override fun removeMessageSuccess(messageItemArgument: MessageItemArgument) {
+        listener?.removeMessageSuccess(messageItemArgument)
+    }
+
+    fun updateMessage(messageArgument: UpdateMessageArgument) {
+        messageClient?.updateMessage(messageArgument.messageId, messageArgument.messageBody)
+    }
+
+    override fun updateMessageSuccess(messageItemArgument: MessageItemArgument) {
+        listener?.updateMessageSuccess(messageItemArgument)
+    }
+
+    fun createChannel(createChannelArgument: CreateChannelArgument) {
+        val channelType = if (createChannelArgument.channelType == 0) {
+            Channel.ChannelType.PUBLIC
+        } else {
+            Channel.ChannelType.PRIVATE
+        }
+        chatClient?.channels?.createChannel(createChannelArgument.channelName, channelType, ChatCallbackListener(
+                success = {
+                    Log.e(this.javaClass.simpleName, "createChannel success: $it")
+                    listener?.createChannelResult(true)
+                    channels[it.sid] = ChannelModel(it)
+                    refreshChannelList()
+                },
+                fail = { errorInfo ->
+                    Log.e(this.javaClass.simpleName, "createChannel failed: $errorInfo")
+                    listener?.createChannelResult(errorInfo.message)
+                }
+        ))
+    }
+
+    fun inviteByIdentity(identity: String) {
+        messageClient?.inviteByIdentity(identity)
+    }
 }
 
 interface BasicChatClientCallback {
     fun getMessageCompleted()
+    fun removeMessageSuccess(messageItemArgument: MessageItemArgument)
+    fun updateMessageSuccess(messageItemArgument: MessageItemArgument)
 }

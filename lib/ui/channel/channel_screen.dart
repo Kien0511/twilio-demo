@@ -11,12 +11,31 @@ class ChannelScreen extends GetView<ChannelController> {
       appBar: AppBar(title: Text("Channel"),),
       body: Container(
         child: SingleChildScrollView(
-          child: Obx(() => Column(
-            children: List.generate(controller.listChannel.value.length, (index) {
-              final channel = controller.listChannel.value.values.toList()[index];
-              return InkWell(
+          child: Column(
+            children: [
+              Obx(() => Column(
+                children: List.generate(controller.listChannel.value.length, (index) {
+                  final channel = controller.listChannel.value.values.toList()[index];
+                  return InkWell(
+                    onTap: () {
+                      controller.checkJoinChannel(channel);
+                    },
+                    child: Container(
+                      alignment: Alignment.centerLeft,
+                      width: Get.width,
+                      height: 56.0,
+                      color: channel.type == 0 ? Colors.blue : Colors.greenAccent,
+                      margin: EdgeInsets.all(8.0),
+                      padding: EdgeInsets.all(8.0),
+                      child: Text("${channel.friendlyName}"),
+                    ),
+                  );
+                }),
+              ),
+              ),
+              InkWell(
                 onTap: () {
-                  controller.checkJoinChannel(channel);
+                  controller.createChannel();
                 },
                 child: Container(
                   width: Get.width,
@@ -24,11 +43,10 @@ class ChannelScreen extends GetView<ChannelController> {
                   color: Colors.red,
                   margin: EdgeInsets.all(8.0),
                   padding: EdgeInsets.all(8.0),
-                  child: Text("${channel.friendlyName}"),
+                  child: Center(child: Text("create channel")),
                 ),
-              );
-            }),
-          ),
+              ),
+            ],
           ),
         ),
       ),

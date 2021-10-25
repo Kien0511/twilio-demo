@@ -25,23 +25,6 @@ class TwilioApplication : Application() {
         }
     }
 
-    fun showError(error: ErrorInfo) {
-        showError("Something went wrong", error)
-    }
-
-    fun showError(message: String, error: ErrorInfo) {
-        showToast(formatted(message, error), Toast.LENGTH_LONG)
-        logErrorInfo(message, error)
-    }
-
-    fun logErrorInfo(message: String, error: ErrorInfo) {
-        error { formatted(message, error) }
-    }
-
-    private fun formatted(message: String, error: ErrorInfo): String {
-        return String.format("%s. %s", message, error.toString())
-    }
-
     companion object {
         lateinit var instance: TwilioApplication
             private set

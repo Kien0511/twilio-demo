@@ -4,6 +4,8 @@ import 'package:test_twilio/model/channel_model.dart';
 import 'package:test_twilio/routes/router.dart';
 import 'package:test_twilio/services/arguments/basic_chat_client_argument.dart';
 import 'package:test_twilio/services/basic_chat_channel.dart';
+import 'package:test_twilio/widgets/channel_list_action.dart';
+import 'package:test_twilio/widgets/custom_input_text_field.dart';
 
 class ChannelController extends GetxController {
   BasicChatClientArgument argument;
@@ -66,5 +68,28 @@ class ChannelController extends GetxController {
         },)
       ],
     ));
+  }
+
+  void createChannel() {
+    Get.bottomSheet(ChannelListAction(
+      onPublicChannel: () {
+        _inputChannelName(0);
+      },
+      onPrivateChannel: () {
+        _inputChannelName(1);
+      },
+    ));
+  }
+
+  void _inputChannelName(int channelType) {
+    Get.dialog(CustomInputTextField(message: "channel name", titleAction: "Create", onUpdate: (channelName) async {
+      final result = await BasicChatChannel().createChannel(channelName, channelType);
+      if (result is bool) {
+        print("result is bool");
+      } else {
+        print("error: $result");
+      }
+      Get.back();
+    },));
   }
 }
