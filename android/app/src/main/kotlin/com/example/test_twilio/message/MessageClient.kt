@@ -25,6 +25,7 @@ class MessageClient: ChannelListener{
 
     private var channel: Channel? = null
     private var listener: BasicChatClientCallback? = null
+    private var canLoadMore = true
 
     val messageItemList = ArrayList<MessageItemArgument>()
 
@@ -38,6 +39,7 @@ class MessageClient: ChannelListener{
 
     fun getLastMessage(count: Int = 50) {
         channel?.messages?.getLastMessages(count, ChatCallbackListener<List<Message>> {
+            canLoadMore = it.size == 50
             messageItemList.clear()
             val members = channel?.members
             members?.let { membersList ->
@@ -96,10 +98,18 @@ class MessageClient: ChannelListener{
         Log.e(this@MessageClient.javaClass.simpleName, "member deleted: ${member.toString()}")
     }
 
-    override fun onTypingStarted(p0: Channel?, p1: Member?) {
+    override fun onTypingStarted(p0: Channel?, member: Member?) {
+        member?.let {
+            listener?.onTypingStarted("${it.identity} is typing....")
+        }
+        Log.e(this@MessageClient.javaClass.simpleName, "onTypingStarted: ${member.toString()}")
     }
 
-    override fun onTypingEnded(p0: Channel?, p1: Member?) {
+    override fun onTypingEnded(p0: Channel?, member: Member?) {
+        member?.let {
+            listener?.onTypingEnded("")
+        }
+        Log.e(this@MessageClient.javaClass.simpleName, "onTypingEnded: ${member.toString()}")
     }
 
     override fun onSynchronizationChanged(p0: Channel?) {
@@ -154,7 +164,7 @@ class MessageClient: ChannelListener{
     }
 
     fun inviteByIdentity(identity: String) {
-        channel?.members?.inviteByIdentity(identity, ChatStatusListener(
+        channel?.members?.addByIdentity(identity, ChatStatusListener(
                 success = {
                     Log.e(this@MessageClient.javaClass.simpleName, "inviteByIdentity callback success")
                 },
@@ -162,5 +172,35 @@ class MessageClient: ChannelListener{
                     Log.e(this@MessageClient.javaClass.simpleName, "inviteByIdentity callback failed: $errorInfo")
                 }
         ))
+    }
+
+    fun typing() {
+        channel?.typing()
+    }
+
+    fun getMessageBefore(count: Int = 50) {
+        if (messageItemList.isNotEmpty() && canLoadMore) {
+            val messageIndex = messageItemList.first().message.messageIndex
+            channel?.messages?.getMessagesBefore(messageIndex, count, ChatCallbackListener(
+                    success = {
+                        canLoadMore = it.size == count
+                        val members = channel?.members
+                        val listTemp = mutableListOf<MessageItemArgument>()
+                        members?.let { membersList ->
+                            if (it.isNotEmpty()) {
+                                for (i in it.indices) {
+                                    listTemp.add(MessageItemArgument(it[i], membersList))
+                                }
+                            }
+                        }
+                        messageItemList.addAll(0, listTemp)
+                        listener?.loadMoreMessageComplete(listTemp)
+                        Log.e(this@MessageClient.javaClass.simpleName, "getMessagesBefore success: $it")
+                    },
+                    fail = {
+                        Log.e(this@MessageClient.javaClass.simpleName, "getMessagesBefore failed: $it")
+                    }
+            ))
+        }
     }
 }

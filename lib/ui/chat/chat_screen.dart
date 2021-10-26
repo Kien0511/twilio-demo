@@ -28,6 +28,7 @@ class ChatScreen extends GetView<ChatController> {
         body: Column(
           children: [
             Expanded(child: _buildListMessage()),
+            _buildTypingDescription(),
             _buildInputMessage(),
           ],
         ),
@@ -35,24 +36,43 @@ class ChatScreen extends GetView<ChatController> {
     );
   }
 
+  Widget _buildTypingDescription() {
+    return Obx(() => controller.typingDescription.value.isNotEmpty
+        ? Text(
+            controller.typingDescription.value,
+            style: TextStyle(color: Colors.red),
+          )
+        : SizedBox());
+  }
+
   Widget _buildListMessage() {
-    return Obx(() => ListView.separated(
-      padding: EdgeInsets.symmetric(vertical: 16.0),
-      controller: controller.listMessageController,
-        itemBuilder: (context, index) {
-          final MessageItemModel messageItem = controller.listMessage[index];
-          if (messageItem.message?.author == author) {
-            return _buildCurrentMessage(messageItem);
-          } else {
-            return _buildMessage(messageItem);
-          }
-        },
-        separatorBuilder: (context, indext) {
-          return SizedBox(
-            height: 12.0,
-          );
-        },
-        itemCount: controller.listMessage.length));
+    return Obx(() => NotificationListener<ScrollNotification>(
+      onNotification: (ScrollNotification scrollInfo) {
+        if (scrollInfo is ScrollEndNotification) {
+          print("scrollEnd");
+          controller.checkLoadMoreMessage();
+        }
+        return true;
+      },
+      child: ListView.separated(
+        reverse: true,
+        padding: EdgeInsets.symmetric(vertical: 16.0),
+        controller: controller.listMessageController,
+          itemBuilder: (context, index) {
+            final MessageItemModel messageItem = controller.listMessage[index];
+            if (messageItem.message?.author == author) {
+              return _buildCurrentMessage(messageItem);
+            } else {
+              return _buildMessage(messageItem);
+            }
+          },
+          separatorBuilder: (context, indext) {
+            return SizedBox(
+              height: 12.0,
+            );
+          },
+          itemCount: controller.listMessage.length),
+    ));
   }
 
   Widget _buildMessage(MessageItemModel messageItem) {

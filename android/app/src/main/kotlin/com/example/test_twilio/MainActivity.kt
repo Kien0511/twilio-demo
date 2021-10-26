@@ -56,6 +56,12 @@ class MainActivity: FlutterActivity(), MainActivityCallback {
                 MethodChannelChat.inviteByIdentity -> {
                     TwilioApplication.instance.basicClient.inviteByIdentity(call.arguments as String)
                 }
+                MethodChannelChat.typing -> {
+                    TwilioApplication.instance.basicClient.typing()
+                }
+                MethodChannelChat.getMessageBefore -> {
+                    TwilioApplication.instance.basicClient.getMessageBefore()
+                }
             }
         }
     }
@@ -95,6 +101,18 @@ class MainActivity: FlutterActivity(), MainActivityCallback {
     override fun createChannelResult(result: Any) {
         flutterResult?.success(result)
     }
+
+    override fun onTypingStarted(description: String) {
+        methodChannel?.invokeMethod(MethodChannelChat.onTypingStarted, description)
+    }
+
+    override fun onTypingEnded(description: String) {
+        methodChannel?.invokeMethod(MethodChannelChat.onTypingEnded, description)
+    }
+
+    override fun loadMoreMessageComplete(list: MutableList<MessageItemArgument>) {
+        flutterResult?.success(MessageItemArgument.toMapList(list))
+    }
 }
 
 class MethodChannelChat {
@@ -115,6 +133,10 @@ class MethodChannelChat {
         const val updateMessageSuccess = "updateMessageSuccess"
         const val createChannel = "createChannel"
         const val inviteByIdentity = "inviteByIdentity"
+        const val typing = "typing"
+        const val onTypingStarted = "onTypingStarted"
+        const val onTypingEnded = "onTypingEnded"
+        const val getMessageBefore = "getMessageBefore"
     }
 }
 
@@ -128,4 +150,7 @@ interface MainActivityCallback {
    fun removeMessageSuccess(messageItemArgument: MessageItemArgument)
    fun updateMessageSuccess(messageItemArgument: MessageItemArgument)
    fun createChannelResult(result: Any)
+   fun onTypingStarted(description: String)
+   fun onTypingEnded(description: String)
+   fun loadMoreMessageComplete(list: MutableList<MessageItemArgument>)
 }

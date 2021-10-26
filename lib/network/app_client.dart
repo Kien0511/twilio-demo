@@ -9,7 +9,7 @@ class AppClient extends DioClient {
   /// config dio client option
   static BaseOptions _getDioOptions() {
     return BaseOptions(
-        baseUrl: "https://9135-27-72-98-245.ngrok.io",
+        baseUrl: "https://03c1-27-72-98-245.ngrok.io",
         connectTimeout: 30000,
         headers: _getAuthenticationHeader());
   }

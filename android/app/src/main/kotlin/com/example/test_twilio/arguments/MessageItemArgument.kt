@@ -5,6 +5,18 @@ import com.twilio.chat.Members
 import com.twilio.chat.Message
 
 class MessageItemArgument(val message: Message, val members: Members) {
+
+    companion object {
+        fun toMapList(list: MutableList<MessageItemArgument>): List<HashMap<String, Any?>> {
+            val listHashMap = mutableListOf<HashMap<String, Any?>>()
+            list.let {
+                for (messageItem in it) {
+                    listHashMap.add(messageItem.toMap())
+                }
+            }
+            return listHashMap
+        }
+    }
     fun toMap(): HashMap<String, Any?> {
         val hashMap = hashMapOf<String, Any?>()
         hashMap["message"] = messageMap(message)
@@ -43,6 +55,7 @@ class MessageItemArgument(val message: Message, val members: Members) {
             hashMap["lastConsumptionTimestamp"] = member.lastConsumptionTimestamp
             hashMap["identity"] = member.identity
             hashMap["type"] = member.type.value
+            listHashMap.add(hashMap)
         }
         return listHashMap
     }

@@ -318,10 +318,33 @@ class BasicChatClient(private val context: Context)
     fun inviteByIdentity(identity: String) {
         messageClient?.inviteByIdentity(identity)
     }
+
+    fun typing() {
+        messageClient?.typing()
+    }
+
+    override fun onTypingStarted(description: String) {
+        listener?.onTypingStarted(description)
+    }
+
+    override fun onTypingEnded(description: String) {
+        listener?.onTypingEnded(description)
+    }
+
+    override fun loadMoreMessageComplete(list: MutableList<MessageItemArgument>) {
+        listener?.loadMoreMessageComplete(list)
+    }
+
+    fun getMessageBefore() {
+        messageClient?.getMessageBefore()
+    }
 }
 
 interface BasicChatClientCallback {
     fun getMessageCompleted()
     fun removeMessageSuccess(messageItemArgument: MessageItemArgument)
     fun updateMessageSuccess(messageItemArgument: MessageItemArgument)
+    fun onTypingStarted(description: String)
+    fun onTypingEnded(description: String)
+    fun loadMoreMessageComplete(list: MutableList<MessageItemArgument>)
 }

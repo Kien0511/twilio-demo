@@ -24,6 +24,7 @@ class BasicChatChannel {
   Function? _refreshMessagesListCallback;
   Function? _onMessageDelete;
   Function? _onMessageUpdate;
+  Function(String)? _typingCallback;
 
   void setRefreshChannelListCallback(Function refreshChannelListCallback) {
     this._refreshChannelListCallback = refreshChannelListCallback;
@@ -57,6 +58,14 @@ class BasicChatChannel {
     this._onMessageUpdate = null;
   }
 
+  void setTypingCallback(Function(String) typingCallback) {
+    this._typingCallback = typingCallback;
+  }
+
+  void removeTypingCallback() {
+    this._typingCallback = null;
+  }
+
   void initMethodChannel(UserChatRepository userChatRepository) {
     this._userChatRepository = userChatRepository;
     _methodChannel = MethodChannel(_chatChannel);
@@ -76,6 +85,12 @@ class BasicChatChannel {
           break;
         case MethodChannelChat.updateMessageSuccess:
           _onMessageUpdate?.call(call.arguments);
+          break;
+        case MethodChannelChat.onTypingStarted:
+          _typingCallback?.call(call.arguments);
+          break;
+        case MethodChannelChat.onTypingEnded:
+          _typingCallback?.call(call.arguments);
           break;
       }
     });
@@ -146,6 +161,20 @@ class BasicChatChannel {
   void inviteByIdentity(String identity) {
     _methodChannel?.invokeMethod(MethodChannelChat.inviteByIdentity, identity);
   }
+
+  void typing() {
+    _methodChannel?.invokeMethod(MethodChannelChat.typing);
+  }
+
+  Future<dynamic> getMessageBefore() async {
+    try {
+      final result = await _methodChannel?.invokeMethod(MethodChannelChat.getMessageBefore);
+      print(result);
+      return result;
+    } catch (e) {
+      return null;
+    }
+  }
 }
 
 class MethodChannelChat {
@@ -165,4 +194,8 @@ class MethodChannelChat {
   static const String updateMessageSuccess = "updateMessageSuccess";
   static const String createChannel = "createChannel";
   static const String inviteByIdentity = "inviteByIdentity";
+  static const String typing = "typing";
+  static const String onTypingStarted = "onTypingStarted";
+  static const String onTypingEnded = "onTypingEnded";
+  static const String getMessageBefore = "getMessageBefore";
 }

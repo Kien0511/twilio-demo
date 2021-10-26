@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
 import 'package:test_twilio/model/channel_model.dart';
@@ -18,6 +20,11 @@ class ChatController extends GetxController {
   TextEditingController inputTextController = TextEditingController();
 
   ScrollController listMessageController = ScrollController();
+
+  RxString typingDescription = RxString("");
+
+  bool _inProgressGetMessage = false;
+
   @override
   void onInit() {
     super.onInit();
@@ -25,7 +32,21 @@ class ChatController extends GetxController {
       setRefreshMessagesListCallback();
       setMessageDeleteCallback();
       setMessageUpdateCallback();
+      setTypingCallback();
+      typing();
       BasicChatChannel().getMessages(channelModel);
+    });
+  }
+
+  void typing() {
+    inputTextController.addListener(() {
+      BasicChatChannel().typing();
+    });
+  }
+
+  void setTypingCallback() {
+    BasicChatChannel().setTypingCallback((String data) {
+      typingDescription.value = data;
     });
   }
 
@@ -39,14 +60,7 @@ class ChatController extends GetxController {
           }
         });
         this.listMessage.clear();
-        this.listMessage.addAll(listMessage);
-        try {
-          Future.delayed(Duration(milliseconds: 100)).then((_) {
-            listMessageController.jumpTo(listMessageController.position.maxScrollExtent);
-          });
-        } catch (e) {
-          print(e);
-        }
+        this.listMessage.addAll(listMessage.reversed);
       }
       print(data);
     });
@@ -99,5 +113,31 @@ class ChatController extends GetxController {
       Get.back();
       BasicChatChannel().inviteByIdentity(userIdentity);
     }));
+  }
+
+  Future<void> getMessageBefore() async {
+    if (_inProgressGetMessage) {
+      return;
+    }
+    print("start get message before");
+    _inProgressGetMessage = true;
+    final data = await BasicChatChannel().getMessageBefore();
+    _inProgressGetMessage = false;
+    if (data is List) {
+      final List<MessageItemModel> listMessage = [];
+      await Future.forEach(data, (element) {
+        if (element is Map) {
+          listMessage.add(MessageItemModel.fromJson(Map<String, dynamic>.from(element)));
+        }
+      });
+      this.listMessage.addAll(listMessage.reversed);
+    }
+    print(data);
+  }
+
+  void checkLoadMoreMessage() {
+    if (listMessageController.offset >= listMessageController.position.maxScrollExtent - 100.0) {
+      getMessageBefore();
+    }
   }
 }
