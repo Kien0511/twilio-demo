@@ -1,6 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
-import 'package:test_twilio/model/channel_model.dart';
+import 'package:test_twilio/model/conversation_model.dart';
 import 'package:test_twilio/routes/router.dart';
 import 'package:test_twilio/services/arguments/basic_chat_client_argument.dart';
 import 'package:test_twilio/services/basic_chat_channel.dart';
@@ -11,7 +11,7 @@ class ChannelController extends GetxController {
   BasicChatClientArgument argument;
   ChannelController(this.argument);
 
-  Rx<Map<String, ChannelModel>> listChannel = Rx({});
+  Rx<Map<String, ConversationModel>> listChannel = Rx({});
 
   @override
   void onInit() {
@@ -26,16 +26,16 @@ class ChannelController extends GetxController {
   void setRefreshChannelListCallback() {
     BasicChatChannel().setRefreshChannelListCallback((data) {
       if (data is Map) {
-        final newMap = Map<String, ChannelModel>();
+        final newMap = Map<String, ConversationModel>();
         for (final MapEntry entry in data.entries) {
-          newMap[entry.key] = ChannelModel.fromJson(Map<String, dynamic>.from(entry.value as Map));
+          newMap[entry.key] = ConversationModel.fromJson(Map<String, dynamic>.from(entry.value as Map));
         }
         listChannel.value = newMap;
       }
     });
   }
 
-  void checkJoinChannel(ChannelModel channel) {
+  void checkJoinChannel(ConversationModel channel) {
     if (channel.status == 1) {
       Get.toNamed(RouteName.chat, arguments: channel);
     } else {
@@ -72,18 +72,15 @@ class ChannelController extends GetxController {
 
   void createChannel() {
     Get.bottomSheet(ChannelListAction(
-      onPublicChannel: () {
-        _inputChannelName(0);
-      },
-      onPrivateChannel: () {
-        _inputChannelName(1);
+      onCreate: () {
+        _inputChannelName();
       },
     ));
   }
 
-  void _inputChannelName(int channelType) {
-    Get.dialog(CustomInputTextField(message: "channel name", titleAction: "Create", onUpdate: (channelName) async {
-      final result = await BasicChatChannel().createChannel(channelName, channelType);
+  void _inputChannelName() {
+    Get.dialog(CustomInputTextField(message: "conversation name", titleAction: "Create", onUpdate: (channelName) async {
+      final result = await BasicChatChannel().createConversation(channelName);
       if (result is bool) {
         print("result is bool");
       } else {

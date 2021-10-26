@@ -5,29 +5,28 @@ import ChatStatusListener
 import ToastStatusListener
 import android.content.Context
 import android.util.Log
-import com.example.test_twilio.arguments.ChannelArgument
-import com.example.test_twilio.arguments.CreateChannelArgument
+import com.example.test_twilio.arguments.ConversationArgument
 import com.example.test_twilio.arguments.MessageItemArgument
 import com.example.test_twilio.arguments.UpdateMessageArgument
 import com.example.test_twilio.message.MessageClient
-import com.twilio.chat.*
+import com.twilio.conversations.*
 import java.util.*
 
 class BasicChatClient(private val context: Context)
-    : CallbackListener<ChatClient>()
-    , ChatClientListener, BasicChatClientCallback
+    : CallbackListener<ConversationsClient>
+    , ConversationsClientListener, BasicChatClientCallback
 {
     private var accessToken: String? = null
     private var fcmToken: String? = null
-    private val channels = HashMap<String?, ChannelModel>()
+    private val channels = HashMap<String?, ConversationModel>()
     private var listener: MainActivityCallback? = null
     private var messageClient: MessageClient? = null
 
-    private var chatClient: ChatClient? = null
+    private var conversationsClient: ConversationsClient? = null
 
     init {
         if (BuildConfig.DEBUG) {
-            ChatClient.setLogLevel(ChatClient.LogLevel.VERBOSE)
+            ConversationsClient.setLogLevel(ConversationsClient.LogLevel.VERBOSE)
         }
     }
 
@@ -49,21 +48,21 @@ class BasicChatClient(private val context: Context)
 
     fun setFCMToken(fcmToken: String) {
         this.fcmToken = fcmToken
-        if (chatClient != null) {
+        if (conversationsClient != null) {
             setupFcmToken()
         }
     }
 
 
     private fun setupFcmToken() {
-        chatClient!!.registerFCMToken(ChatClient.FCMToken(fcmToken),
+        conversationsClient!!.registerFCMToken(ConversationsClient.FCMToken(fcmToken),
                 ToastStatusListener(
                         "Firebase Messaging registration successful",
                         "Firebase Messaging registration not successful"))
     }
 
     fun unregisterFcmToken() {
-        chatClient!!.unregisterFCMToken(ChatClient.FCMToken(fcmToken),
+        conversationsClient!!.unregisterFCMToken(ConversationsClient.FCMToken(fcmToken),
                 ToastStatusListener(
                         "Firebase Messaging unRegistration successful",
                         "Firebase Messaging unRegistration not successful"))
@@ -72,22 +71,22 @@ class BasicChatClient(private val context: Context)
     fun createClient(accessToken: String?, firebaseToken: String?) {
         this.accessToken = accessToken
         this.fcmToken = firebaseToken
-        if (chatClient != null) {
+        if (conversationsClient != null) {
             shutdown()
         }
-        val props = ChatClient.Properties.Builder()
+        val props = ConversationsClient.Properties.newBuilder()
                 .setRegion("us1")
                 .setDeferCertificateTrustToPlatform(false)
                 .createProperties()
 
-        ChatClient.create(context.applicationContext,
+        ConversationsClient.create(context.applicationContext,
                 this.accessToken!!,
                 props,
                 this)
     }
 
     fun updateAccessToken(accessToken: String?) {
-        chatClient?.let {
+        conversationsClient?.let {
             this.accessToken = accessToken
             it.updateToken(accessToken, ChatStatusListener(
                     success = {
@@ -101,15 +100,15 @@ class BasicChatClient(private val context: Context)
     }
 
     private fun shutdown() {
-        chatClient!!.removeListener(this)
-        chatClient!!.shutdown()
-        chatClient = null // Client no longer usable after shutdown()
+        conversationsClient!!.removeListener(this)
+        conversationsClient!!.shutdown()
+        conversationsClient = null // Client no longer usable after shutdown()
     }
 
     // Client created, remember the reference and set up UI
-    override fun onSuccess(client: ChatClient) {
-        chatClient = client
-        chatClient?.addListener(this)
+    override fun onSuccess(client: ConversationsClient) {
+        conversationsClient = client
+        conversationsClient?.addListener(this)
 
         if (fcmToken != null) {
             setupFcmToken()
@@ -118,127 +117,81 @@ class BasicChatClient(private val context: Context)
         listener?.onCreateBasicChatClientComplete()
     }
 
+    override fun onConversationAdded(conversation: Conversation?) {
+        Log.e(this@BasicChatClient.javaClass.simpleName, "onConversationAdded")
+        channels[conversation?.sid] = ConversationModel(conversation!!)
+        refreshChannelList()
+    }
+
+    override fun onConversationUpdated(conversation: Conversation?, reason: Conversation.UpdateReason?) {
+        Log.e(this@BasicChatClient.javaClass.simpleName, "onConversationUpdated")
+        channels[conversation?.sid] = ConversationModel(conversation!!)
+        refreshChannelList()
+    }
+
+    override fun onConversationDeleted(conversation: Conversation?) {
+        Log.e(this@BasicChatClient.javaClass.simpleName, "onConversationDeleted")
+        channels.remove(conversation?.sid)
+        refreshChannelList()
+    }
+
+    override fun onConversationSynchronizationChange(conversation: Conversation?) {
+        Log.e(this@BasicChatClient.javaClass.simpleName, "onConversationSynchronizationChange")
+        refreshChannelList()
+    }
+
     // Client not created, fail
     override fun onError(errorInfo: ErrorInfo?) {
-        chatClient = null
+        conversationsClient = null
     }
 
     // Token expiration events
     override fun onTokenAboutToExpire() {
-        if (chatClient != null) {
+        if (conversationsClient != null) {
           listener?.generateNewAccessToken()
         }
     }
 
     override fun onTokenExpired() {
         accessToken = null
-        if (chatClient != null) {
+        if (conversationsClient != null) {
             listener?.generateNewAccessToken()
         }
     }
 
-    override fun onChannelAdded(channel: Channel?) {
-        Log.e(this@BasicChatClient.javaClass.simpleName, "onChannelAdded")
-        channels[channel?.sid] = ChannelModel(channel!!)
-        refreshChannelList()
-    }
-    override fun onChannelDeleted(channel: Channel?) {
-        Log.e(this@BasicChatClient.javaClass.simpleName, "onChannelDeleted")
-        channels.remove(channel?.sid)
-        refreshChannelList()
-    }
-    override fun onChannelInvited(channel: Channel?) {
-        Log.e(this@BasicChatClient.javaClass.simpleName, "onChannelInvited")
-        channels[channel?.sid] = ChannelModel(channel!!)
-        refreshChannelList()
-    }
-    override fun onChannelJoined(channel: Channel?) {
-        Log.e(this@BasicChatClient.javaClass.simpleName, "onChannelJoined")
-        channels[channel?.sid] = ChannelModel(channel!!)
-        refreshChannelList()
-    }
-    override fun onChannelSynchronizationChange(channel: Channel?) {
-        Log.e(this@BasicChatClient.javaClass.simpleName, "onChannelSynchronizationChange")
-        refreshChannelList()
-    }
-    override fun onChannelUpdated(channel: Channel?, p1: Channel.UpdateReason?) {
-        Log.e(this@BasicChatClient.javaClass.simpleName, "onChannelUpdated")
-        channels[channel?.sid] = ChannelModel(channel!!)
-        refreshChannelList()
-    }
-    override fun onClientSynchronization(p0: ChatClient.SynchronizationStatus?) {}
-    override fun onConnectionStateChange(p0: ChatClient.ConnectionState?) {}
-    override fun onRemovedFromChannelNotification(p0: String?) {}
+    override fun onClientSynchronization(p0: ConversationsClient.SynchronizationStatus?) {}
+    override fun onConnectionStateChange(p0: ConversationsClient.ConnectionState?) {}
     override fun onUserSubscribed(p0: User?) {}
     override fun onUserUnsubscribed(p0: User?) {}
     override fun onUserUpdated(p0: User?, p1: User.UpdateReason?) {}
-    override fun onAddedToChannelNotification(p0: String?) {}
-    override fun onInvitedToChannelNotification(p0: String?) {}
     override fun onNewMessageNotification(p0: String?, p1: String?, p2: Long) {}
+    override fun onAddedToConversationNotification(conversationSid: String?) {}
+    override fun onRemovedFromConversationNotification(conversationSid: String?) {}
     override fun onNotificationFailed(p0: ErrorInfo?) {}
     override fun onNotificationSubscribed() {}
 
-    fun getPublicChannelsList() {
-        chatClient?.channels?.getPublicChannelsList(object : CallbackListener<Paginator<ChannelDescriptor>>() {
-            override fun onSuccess(channelDescriptorPaginator: Paginator<ChannelDescriptor>?) {
-                channelDescriptorPaginator?.let {
-                    getChannelsPage(it)
-                }
-            }
-        })
-    }
-
-    fun getUserChannelsList() {
-        chatClient?.channels?.getUserChannelsList(object : CallbackListener<Paginator<ChannelDescriptor>>() {
-            override fun onSuccess(channelDescriptorPaginator: Paginator<ChannelDescriptor>?) {
-                channelDescriptorPaginator?.let {
-                    getChannelsPage(it)
-                }
-            }
-        })
-    }
-
-    private fun getChannelsPage(paginator: Paginator<ChannelDescriptor>) {
-        for (cd in paginator.items) {
-            channels[cd.sid] = ChannelModel(cd)
+    fun getListConversation() {
+        conversationsClient?.myConversations?.forEach { conversation ->
+                Log.e(this@BasicChatClient.javaClass.simpleName, "getListConversation: ${conversation.friendlyName}")
+                channels[conversation.sid] = ConversationModel(conversation)
         }
         refreshChannelList()
-
-        if (paginator.hasNextPage()) {
-            paginator.requestNextPage(object : CallbackListener<Paginator<ChannelDescriptor>>() {
-                override fun onSuccess(channelDescriptorPaginator: Paginator<ChannelDescriptor>) {
-                    getChannelsPage(channelDescriptorPaginator)
-                }
-            })
-        } else {
-            // Get subscribed channels last - so their status will overwrite whatever we received
-            // from public list. Ugly workaround for now.
-            val chans = chatClient?.channels?.subscribedChannels
-            if (chans != null) {
-                for (channel in chans) {
-                    channels[channel.sid] = ChannelModel(channel)
-                }
-            }
-            refreshChannelList()
-        }
     }
 
     private fun refreshChannelList() {
         listener?.refreshChannelList()
     }
 
-    fun getMessages(channelArgument: ChannelArgument) {
-        Log.e(this.javaClass.simpleName, "getMessages: $channelArgument")
-        val channelModel = channels[channelArgument.sid]
-        channelModel?.getChannel(object : CallbackListener<Channel>() {
-            override fun onSuccess(channel: Channel?) {
-                messageClient = MessageClient.getInstance()
-                messageClient?.setChannel(channel)
-                messageClient?.setBasicChatClientCallback(this@BasicChatClient)
-                messageClient?.addListener()
-                messageClient?.getLastMessage()
-            }
-        })
+    fun getMessages(conversationArgument: ConversationArgument) {
+        Log.e(this.javaClass.simpleName, "getMessages: $conversationArgument")
+        val channelModel = channels[conversationArgument.sid]
+        channelModel?.getConversation { conversation ->
+            messageClient = MessageClient.getInstance()
+            messageClient?.setConversation(conversation)
+            messageClient?.setBasicChatClientCallback(this@BasicChatClient)
+            messageClient?.addListener()
+            messageClient?.getLastMessage()
+        }
     }
 
     fun getMessageItemList(): List<HashMap<String, Any?>> {
@@ -264,19 +217,17 @@ class BasicChatClient(private val context: Context)
         messageClient?.sendMessage(message)
     }
 
-    fun joinChannel(channelArgument: ChannelArgument) {
-        val channelModel = channels[channelArgument.sid]
-        channelModel?.getChannel(object : CallbackListener<Channel>() {
-            override fun onSuccess(channel: Channel?) {
-                channel?.join(ChatStatusListener(success = {
-                    Log.e(this@BasicChatClient.javaClass.simpleName, "join success")
-                    listener?.joinChannelSuccess()
-                }, fail = {
-                    Log.e(this@BasicChatClient.javaClass.simpleName, "join error")
-                    listener?.joinChannelError()
-                }))
-            }
-        })
+    fun joinChannel(conversationArgument: ConversationArgument) {
+        val channelModel = channels[conversationArgument.sid]
+        channelModel?.getConversation { conversation ->
+            conversation?.join(ChatStatusListener(success = {
+                Log.e(this@BasicChatClient.javaClass.simpleName, "join success")
+                listener?.joinChannelSuccess()
+            }, fail = {
+                Log.e(this@BasicChatClient.javaClass.simpleName, "join error")
+                listener?.joinChannelError()
+            }))
+        }
     }
 
     fun deleteMessage(messageId: String) {
@@ -295,17 +246,12 @@ class BasicChatClient(private val context: Context)
         listener?.updateMessageSuccess(messageItemArgument)
     }
 
-    fun createChannel(createChannelArgument: CreateChannelArgument) {
-        val channelType = if (createChannelArgument.channelType == 0) {
-            Channel.ChannelType.PUBLIC
-        } else {
-            Channel.ChannelType.PRIVATE
-        }
-        chatClient?.channels?.createChannel(createChannelArgument.channelName, channelType, ChatCallbackListener(
+    fun createConversation(conversationName: String) {
+        conversationsClient?.createConversation(conversationName, ChatCallbackListener(
                 success = {
                     Log.e(this.javaClass.simpleName, "createChannel success: $it")
                     listener?.createChannelResult(true)
-                    channels[it.sid] = ChannelModel(it)
+                    channels[it.sid] = ConversationModel(it)
                     refreshChannelList()
                 },
                 fail = { errorInfo ->

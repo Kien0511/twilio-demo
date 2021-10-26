@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:get/route_manager.dart';
-import 'package:test_twilio/model/channel_model.dart';
+import 'package:test_twilio/model/conversation_model.dart';
 import 'package:test_twilio/services/arguments/basic_chat_client_argument.dart';
 import 'package:test_twilio/ui/channel/binding/channel_binding.dart';
 import 'package:test_twilio/ui/channel/channel_screen.dart';
@@ -42,7 +42,7 @@ class AppRouter {
       case RouteName.chat:
         return GetPageRoute(
             page: () => ChatScreen(),
-            binding: ChatBinding(settings.arguments as ChannelModel),
+            binding: ChatBinding(settings.arguments as ConversationModel),
             settings: settings);
       default:
         return GetPageRoute<Widget>(

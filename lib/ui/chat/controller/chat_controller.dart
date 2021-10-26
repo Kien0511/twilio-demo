@@ -2,14 +2,14 @@ import 'dart:async';
 
 import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
-import 'package:test_twilio/model/channel_model.dart';
+import 'package:test_twilio/model/conversation_model.dart';
 import 'package:test_twilio/model/message_item_model.dart';
 import 'package:test_twilio/services/basic_chat_channel.dart';
 import 'package:test_twilio/widgets/custom_input_text_field.dart';
 import 'package:test_twilio/widgets/message_list_action.dart';
 
 class ChatController extends GetxController {
-  final ChannelModel channelModel;
+  final ConversationModel channelModel;
 
   ChatController(this.channelModel);
 

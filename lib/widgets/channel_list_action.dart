@@ -2,11 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 class ChannelListAction extends StatelessWidget {
-  final Function? onPublicChannel;
-  final Function? onPrivateChannel;
+  final Function? onCreate;
   final Function? onCancel;
 
-  ChannelListAction({this.onPublicChannel, this.onPrivateChannel, this.onCancel});
+  ChannelListAction({this.onCreate, this.onCancel});
 
   @override
   Widget build(BuildContext context) {
@@ -15,9 +14,7 @@ class ChannelListAction extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          _buildAction("Create public channel", onPublicChannel),
-          Divider(height: 1.0,),
-          _buildAction("Create private channel", onPrivateChannel),
+          _buildAction("Create conversation", onCreate),
           Divider(height: 1.0,),
           SizedBox(height: 24.0,),
           _buildAction("cancel", onCancel),

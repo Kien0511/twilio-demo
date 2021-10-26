@@ -1,14 +1,14 @@
 import com.example.test_twilio.TwilioApplication
-import com.twilio.chat.CallbackListener
-import com.twilio.chat.ErrorInfo
-import com.twilio.chat.StatusListener
+import com.twilio.conversations.CallbackListener
+import com.twilio.conversations.ErrorInfo
+import com.twilio.conversations.StatusListener
 
 typealias SuccessStatus = () -> Unit
 typealias SuccessCallback<T> = (T) -> Unit
 typealias ErrorCallback = (error: ErrorInfo) -> Unit
 
 class ChatCallbackListener<T>(val fail: ErrorCallback = {},
-                              val success: SuccessCallback<T> = {}) : CallbackListener<T>() {
+                              val success: SuccessCallback<T> = {}) : CallbackListener<T> {
 
     override fun onSuccess(p0: T) = success(p0)
 
@@ -18,7 +18,7 @@ class ChatCallbackListener<T>(val fail: ErrorCallback = {},
 }
 
 open class ChatStatusListener(val fail: ErrorCallback = {},
-                              val success: SuccessStatus = {}) : StatusListener() {
+                              val success: SuccessStatus = {}) : StatusListener {
 
     override fun onSuccess() = success()
 

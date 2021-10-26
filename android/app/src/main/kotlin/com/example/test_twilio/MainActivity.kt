@@ -26,11 +26,10 @@ class MainActivity: FlutterActivity(), MainActivityCallback {
                 }
                 MethodChannelChat.getChannels -> {
                     TwilioApplication.instance.basicClient.clearChannel()
-                    TwilioApplication.instance.basicClient.getPublicChannelsList()
-                    TwilioApplication.instance.basicClient.getUserChannelsList()
+                    TwilioApplication.instance.basicClient.getListConversation()
                 }
                 MethodChannelChat.getMessages -> {
-                    TwilioApplication.instance.basicClient.getMessages(ChannelArgument.fromMap(call.arguments as HashMap<String, Any>))
+                    TwilioApplication.instance.basicClient.getMessages(ConversationArgument.fromMap(call.arguments as HashMap<String, Any>))
                 }
                 MethodChannelChat.removeChannelListener -> {
                     TwilioApplication.instance.basicClient.removeChannelListener()
@@ -39,7 +38,7 @@ class MainActivity: FlutterActivity(), MainActivityCallback {
                     TwilioApplication.instance.basicClient.sendMessage(call.arguments as String)
                 }
                 MethodChannelChat.joinChannel -> {
-                    TwilioApplication.instance.basicClient.joinChannel(ChannelArgument.fromMap(call.arguments as HashMap<String, Any>))
+                    TwilioApplication.instance.basicClient.joinChannel(ConversationArgument.fromMap(call.arguments as HashMap<String, Any>))
                 }
                 MethodChannelChat.generateNewAccessSuccess -> {
                     TwilioApplication.instance.basicClient.updateAccessToken(call.arguments as String)
@@ -51,7 +50,7 @@ class MainActivity: FlutterActivity(), MainActivityCallback {
                     TwilioApplication.instance.basicClient.updateMessage(UpdateMessageArgument.fromMap(call.arguments as HashMap<String, Any>))
                 }
                 MethodChannelChat.createChannel -> {
-                    TwilioApplication.instance.basicClient.createChannel(CreateChannelArgument.fromMap(call.arguments as HashMap<String, Any>))
+                    TwilioApplication.instance.basicClient.createConversation(call.arguments as String)
                 }
                 MethodChannelChat.inviteByIdentity -> {
                     TwilioApplication.instance.basicClient.inviteByIdentity(call.arguments as String)

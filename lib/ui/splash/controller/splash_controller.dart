@@ -1,6 +1,6 @@
 import 'package:get/get.dart';
 import 'package:test_twilio/model/access_token_response.dart';
-import 'package:test_twilio/model/channel_model.dart';
+import 'package:test_twilio/model/conversation_model.dart';
 import 'package:test_twilio/network/api_result.dart';
 import 'package:test_twilio/repository/user_chat_repository.dart';
 import 'package:test_twilio/routes/router.dart';

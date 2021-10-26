@@ -1,4 +1,4 @@
-class ChannelModel {
+class ConversationModel {
   String? friendlyName;
   String? sid;
   int? dateUpdatedAsDate;
@@ -9,7 +9,7 @@ class ChannelModel {
   int? lastMessageIndex;
   int? type;
 
-  ChannelModel.fromJson(Map<String, dynamic> json) {
+  ConversationModel.fromJson(Map<String, dynamic> json) {
     friendlyName = json['friendlyName'];
     sid = json['sid'];
     dateUpdatedAsDate = json['dateUpdatedAsDate'];

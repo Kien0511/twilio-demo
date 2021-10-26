@@ -5,7 +5,6 @@ import android.os.Handler
 import android.os.Looper
 import android.view.Gravity
 import android.widget.Toast
-import com.twilio.chat.ErrorInfo
 
 class TwilioApplication : Application() {
     lateinit var basicClient: BasicChatClient

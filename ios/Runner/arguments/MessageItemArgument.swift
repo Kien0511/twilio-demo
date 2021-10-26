@@ -40,7 +40,7 @@ class MessageItemArgument {
         map["dateUpdated"] = message.dateUpdated
         map["lastUpdatedBy"] = message.lastUpdatedBy
         map["messageBody"] = message.body
-        map["memberSid"] = message.memberSid
+        map["participantSid"] = message.participantSid
         map["messageIndex"] = message.index
         map["type"] = message.messageType.rawValue
         map["hasMedia"] = message.hasMedia()
@@ -58,8 +58,8 @@ class MessageItemArgument {
         for member in membersList {
             var map: [String: Any?] = [:]
             map["sid"] = member.sid
-            map["lastConsumedMessageIndex"] = member.lastConsumedMessageIndex
-            map["lastConsumptionTimestamp"] = member.lastConsumptionTimestamp
+            map["lastReadMessageIndex"] = member.lastReadMessageIndex
+            map["lastReadTimestamp"] = member.lastReadTimestamp
             map["identity"] = member.identity
             map["type"] = member.type.rawValue
             listMap.append(map)

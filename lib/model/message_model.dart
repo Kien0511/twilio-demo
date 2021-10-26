@@ -5,8 +5,8 @@ class MessageModel {
   String? dateUpdated;
   String? lastUpdatedBy;
   String? messageBody;
-  String? channelSid;
-  String? memberSid;
+  String? conversationSid;
+  String? participantSid;
   int? messageIndex;
   int? type;
   bool? hasMedia;
@@ -18,8 +18,8 @@ class MessageModel {
     dateUpdated = json["dateUpdated"];
     lastUpdatedBy = json["lastUpdatedBy"];
     messageBody = json["messageBody"];
-    channelSid = json["channelSid"];
-    memberSid = json["memberSid"];
+    conversationSid = json["conversationSid"];
+    participantSid = json["participantSid"];
     messageIndex = json["messageIndex"];
     type = json["type"];
     hasMedia = json["hasMedia"];

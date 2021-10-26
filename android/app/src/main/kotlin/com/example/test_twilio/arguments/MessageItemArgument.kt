@@ -1,10 +1,9 @@
 package com.example.test_twilio.arguments
 
-import com.twilio.chat.Member
-import com.twilio.chat.Members
-import com.twilio.chat.Message
+import com.twilio.conversations.Message
+import com.twilio.conversations.Participant
 
-class MessageItemArgument(val message: Message, val members: Members) {
+class MessageItemArgument(val message: Message, val members: List<Participant>) {
 
     companion object {
         fun toMapList(list: MutableList<MessageItemArgument>): List<HashMap<String, Any?>> {
@@ -32,27 +31,27 @@ class MessageItemArgument(val message: Message, val members: Members) {
         hashMap["dateUpdated"] = message.dateUpdated
         hashMap["lastUpdatedBy"] = message.lastUpdatedBy
         hashMap["messageBody"] = message.messageBody
-        hashMap["channelSid"] = message.channelSid
-        hashMap["memberSid"] = message.memberSid
+        hashMap["conversationSid"] = message.conversationSid
+        hashMap["participantSid"] = message.participantSid
         hashMap["messageIndex"] = message.messageIndex
         hashMap["type"] = message.type.value
         hashMap["hasMedia"] = message.hasMedia()
         return hashMap
     }
 
-    private fun membersMap(members: Members) : HashMap<String, Any?> {
+    private fun membersMap(members: List<Participant>) : HashMap<String, Any?> {
         val hashMap = hashMapOf<String, Any?>()
-        hashMap["members"] = memberMap(members.membersList)
+        hashMap["members"] = memberMap(members)
         return hashMap
     }
 
-    private fun memberMap(membersList: List<Member>) : List<HashMap<String, Any?>> {
+    private fun memberMap(membersList: List<Participant>) : List<HashMap<String, Any?>> {
         val listHashMap = mutableListOf<HashMap<String, Any?>>()
         for (member in membersList) {
             val hashMap = hashMapOf<String, Any?>()
             hashMap["sid"] = member.sid
-            hashMap["lastConsumedMessageIndex"] = member.lastConsumedMessageIndex
-            hashMap["lastConsumptionTimestamp"] = member.lastConsumptionTimestamp
+            hashMap["lastReadMessageIndex"] = member.lastReadMessageIndex
+            hashMap["lastReadTimestamp"] = member.lastReadTimestamp
             hashMap["identity"] = member.identity
             hashMap["type"] = member.type.value
             listHashMap.add(hashMap)

@@ -1,10 +1,9 @@
 import 'package:flutter/services.dart';
 import 'package:test_twilio/model/access_token_response.dart';
-import 'package:test_twilio/model/channel_model.dart';
+import 'package:test_twilio/model/conversation_model.dart';
 import 'package:test_twilio/network/api_result.dart';
 import 'package:test_twilio/repository/user_chat_repository.dart';
 import 'package:test_twilio/services/arguments/basic_chat_client_argument.dart';
-import 'package:test_twilio/services/arguments/create_channel_argument.dart';
 import 'package:test_twilio/services/arguments/update_message_argument.dart';
 import 'package:test_twilio/ui/login/controller/login_controller.dart';
 
@@ -110,7 +109,7 @@ class BasicChatChannel {
     _methodChannel?.invokeMethod(MethodChannelChat.getChannels);
   }
 
-  void getMessages(ChannelModel channelModel) {
+  void getMessages(ConversationModel channelModel) {
     _methodChannel?.invokeMethod(MethodChannelChat.getMessages, channelModel.toMap());
   }
 
@@ -122,7 +121,7 @@ class BasicChatChannel {
     _methodChannel?.invokeMethod(MethodChannelChat.sendMessage, message);
   }
 
-  Future<bool> joinChannel(ChannelModel channelModel) async {
+  Future<bool> joinChannel(ConversationModel channelModel) async {
     try {
       final result = await _methodChannel?.invokeMethod(MethodChannelChat.joinChannel, channelModel.toMap());
       print("joinChannel: $result");
@@ -149,9 +148,9 @@ class BasicChatChannel {
     });
   }
 
-  Future<dynamic> createChannel(String channelName, int channelType) async {
+  Future<dynamic> createConversation(String conversationName) async {
     try {
-      final result = await _methodChannel?.invokeMethod(MethodChannelChat.createChannel, CreateChannelArgument(channelName, channelType).toMap());
+      final result = await _methodChannel?.invokeMethod(MethodChannelChat.createChannel, conversationName);
       return result;
     } catch (e) {
       return false;

@@ -1,6 +1,6 @@
 package com.example.test_twilio.arguments
 
-class ChannelArgument(
+class ConversationArgument(
         var friendlyName: String?,
         var sid: String?,
         var dateUpdatedAsDate: Long?,
@@ -12,8 +12,8 @@ class ChannelArgument(
         var type: Int?) {
 
     companion object {
-        fun fromMap(data: HashMap<String, Any>?): ChannelArgument {
-            return ChannelArgument(
+        fun fromMap(data: HashMap<String, Any>?): ConversationArgument {
+            return ConversationArgument(
                     friendlyName = data?.get("friendlyName")?.toString(),
                     sid = data?.get("sid")?.toString(),
                     dateUpdatedAsDate = data?.get("dateUpdatedAsDate")?.toString()?.toLong(),
