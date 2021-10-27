@@ -4,8 +4,6 @@ import ChatCallbackListener
 import ChatStatusListener
 import ToastStatusListener
 import android.content.Context
-import android.os.Handler
-import android.os.Looper
 import android.util.Log
 import com.example.test_twilio.arguments.ConversationArgument
 import com.example.test_twilio.arguments.MessageItemArgument
@@ -20,7 +18,7 @@ class BasicChatClient(private val context: Context)
 {
     private var accessToken: String? = null
     private var fcmToken: String? = null
-    private val channels = HashMap<String?, ConversationModel>()
+    private val conversations = HashMap<String?, ConversationModel>()
     private var listener: MainActivityCallback? = null
     private var messageClient: MessageClient? = null
 
@@ -32,16 +30,16 @@ class BasicChatClient(private val context: Context)
         }
     }
 
-    fun getChannel(): HashMap<String?, Any?> {
+    fun getConservations(): HashMap<String?, Any?> {
         val hashMap = hashMapOf<String?, Any?>()
-        for (entry in channels.entries) {
+        for (entry in conversations.entries) {
             hashMap[entry.key] = entry.value.toMap()
         }
         return hashMap
     }
 
     fun clearChannel() {
-        channels.clear()
+        conversations.clear()
     }
 
     fun setMainActivityCallback(listener: MainActivityCallback) {
@@ -121,19 +119,19 @@ class BasicChatClient(private val context: Context)
 
     override fun onConversationAdded(conversation: Conversation?) {
         Log.e(this@BasicChatClient.javaClass.simpleName, "onConversationAdded")
-        channels[conversation?.sid] = ConversationModel(conversation!!)
+        conversations[conversation?.sid] = ConversationModel(conversation!!)
         refreshChannelList()
     }
 
     override fun onConversationUpdated(conversation: Conversation?, reason: Conversation.UpdateReason?) {
         Log.e(this@BasicChatClient.javaClass.simpleName, "onConversationUpdated")
-        channels[conversation?.sid] = ConversationModel(conversation!!)
+        conversations[conversation?.sid] = ConversationModel(conversation!!)
         refreshChannelList()
     }
 
     override fun onConversationDeleted(conversation: Conversation?) {
         Log.e(this@BasicChatClient.javaClass.simpleName, "onConversationDeleted")
-        channels.remove(conversation?.sid)
+        conversations.remove(conversation?.sid)
         refreshChannelList()
     }
 
@@ -183,7 +181,7 @@ class BasicChatClient(private val context: Context)
         conversationsClient?.myConversations?.forEach { conversation ->
             Log.e(this@BasicChatClient.javaClass.simpleName, "getListConversation: ${conversation.friendlyName}")
             Log.e(this@BasicChatClient.javaClass.simpleName, "getListConversation: ${conversation.sid}")
-            channels[conversation.sid] = ConversationModel(conversation)
+            conversations[conversation.sid] = ConversationModel(conversation)
         }
         refreshChannelList()
     }
@@ -195,8 +193,8 @@ class BasicChatClient(private val context: Context)
 
     fun getMessages(conversationArgument: ConversationArgument) {
         Log.e(this.javaClass.simpleName, "getMessages: $conversationArgument")
-        val channelModel = channels[conversationArgument.sid]
-        channelModel?.getConversation { conversation ->
+        val conversationModel = conversations[conversationArgument.sid]
+        conversationModel?.getConversation { conversation ->
             messageClient = MessageClient.getInstance()
             messageClient?.setConversation(conversation)
             messageClient?.setBasicChatClientCallback(this@BasicChatClient)
@@ -216,7 +214,7 @@ class BasicChatClient(private val context: Context)
         return listHashMap
     }
 
-    fun removeChannelListener() {
+    fun removeConversationListener() {
         messageClient?.removeListener()
     }
 
@@ -228,9 +226,9 @@ class BasicChatClient(private val context: Context)
         messageClient?.sendMessage(message)
     }
 
-    fun joinChannel(conversationArgument: ConversationArgument) {
-        val channelModel = channels[conversationArgument.sid]
-        channelModel?.getConversation { conversation ->
+    fun joinConversation(conversationArgument: ConversationArgument) {
+        val conversationModel = conversations[conversationArgument.sid]
+        conversationModel?.getConversation { conversation ->
             conversation?.join(ChatStatusListener(success = {
                 Log.e(this@BasicChatClient.javaClass.simpleName, "join success")
                 listener?.joinChannelSuccess()
@@ -262,7 +260,7 @@ class BasicChatClient(private val context: Context)
                 success = {
                     Log.e(this.javaClass.simpleName, "createChannel success: $it")
                     listener?.createChannelResult(true)
-                    channels[it.sid] = ConversationModel(it)
+                    conversations[it.sid] = ConversationModel(it)
                     refreshChannelList()
                 },
                 fail = { errorInfo ->
@@ -273,7 +271,7 @@ class BasicChatClient(private val context: Context)
     }
 
     fun inviteByIdentity(identity: String) {
-        messageClient?.inviteByIdentity(identity)
+        messageClient?.addParticipantByIdentity(identity)
     }
 
     fun typing() {

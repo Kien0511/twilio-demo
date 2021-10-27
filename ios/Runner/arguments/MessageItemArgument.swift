@@ -6,13 +6,13 @@
 //
 
 import Foundation
-import TwilioChatClient
+import TwilioConversationsClient
 
 class MessageItemArgument {
     var message: TCHMessage?
-    var members: TCHMembers?
+    var members: [TCHParticipant]?
     
-    init(message: TCHMessage?, members: TCHMembers?) {
+    init(message: TCHMessage?, members: [TCHParticipant]?) {
         self.message = message
         self.members = members
     }
@@ -47,13 +47,13 @@ class MessageItemArgument {
         return map
     }
     
-    private func membersMap(members: TCHMembers) -> [String: Any?] {
+    private func membersMap(members: [TCHParticipant]?) -> [String: Any?] {
         var map: [String: Any?] = [:]
-        map["members"] = memberMap(membersList: members.membersList())
+        map["members"] = memberMap(membersList: members!)
         return map
     }
     
-    private func memberMap(membersList: [TCHMember]) -> [[String: Any?]] {
+    private func memberMap(membersList: [TCHParticipant]) -> [[String: Any?]] {
         var listMap: [[String: Any?]] = []
         for member in membersList {
             var map: [String: Any?] = [:]

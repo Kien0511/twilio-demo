@@ -39,7 +39,7 @@ class MessageClient: ConversationListener{
 
     fun getLastMessage(count: Int = 50) {
         conversation?.getLastMessages(count, ChatCallbackListener<List<Message>> {
-            canLoadMore = it.size == 50
+            canLoadMore = it.size == count
             messageItemList.clear()
             val participantsList = conversation?.participantsList
             participantsList?.let { membersList ->
@@ -163,7 +163,7 @@ class MessageClient: ConversationListener{
         }
     }
 
-    fun inviteByIdentity(identity: String) {
+    fun addParticipantByIdentity(identity: String) {
         conversation?.addParticipantByIdentity(identity, null, ChatStatusListener(
                 success = {
                     Log.e(this@MessageClient.javaClass.simpleName, "inviteByIdentity callback success")

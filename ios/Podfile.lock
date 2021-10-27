@@ -4,17 +4,17 @@ PODS:
     - Reachability
   - Flutter (1.0.0)
   - Reachability (3.2)
-  - TwilioChatClient (5.0.1)
+  - TwilioConversationsClient (2.0.0)
 
 DEPENDENCIES:
   - connectivity_plus (from `.symlinks/plugins/connectivity_plus/ios`)
   - Flutter (from `Flutter`)
-  - TwilioChatClient (~> 5.0.1)
+  - TwilioConversationsClient (~> 2.0)
 
 SPEC REPOS:
   trunk:
     - Reachability
-    - TwilioChatClient
+    - TwilioConversationsClient
 
 EXTERNAL SOURCES:
   connectivity_plus:
@@ -26,8 +26,8 @@ SPEC CHECKSUMS:
   connectivity_plus: 5f0eb61093bec56935f21a1699dd2758bc895587
   Flutter: 434fef37c0980e73bb6479ef766c45957d4b510c
   Reachability: 33e18b67625424e47b6cde6d202dce689ad7af96
-  TwilioChatClient: 2a915858c972075108da2fd5fc382f237b1490cc
+  TwilioConversationsClient: 736806f82bf224056cbb2565f130af0e8f3ce380
 
-PODFILE CHECKSUM: d6929ee513059b9447147783114773a58eee1657
+PODFILE CHECKSUM: 24fea37502ec6c52170a42e8b7ead3e56211f389
 
 COCOAPODS: 1.11.2

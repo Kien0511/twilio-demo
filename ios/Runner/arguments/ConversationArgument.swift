@@ -7,7 +7,7 @@
 
 import Foundation
 
-class ChannelArgument {
+class ConversationArgument {
     var friendlyName: String?
     var sid: String?
     var dateUpdatedAsDate: Int64?
@@ -30,7 +30,7 @@ class ChannelArgument {
         self.type = type
     }
     
-    static func fromMap(data: [String: Any?]) -> ChannelArgument {
-        return ChannelArgument(friendlyName: data["friendlyName"] as? String, sid: data["sid"] as? String, dateUpdatedAsDate: data["dateUpdatedAsDate"] as? Int64, dateCreatedAsDate: data["dateCreatedAsDate"] as? Int64, status: data["status"] as? Int, lastMessageDate: data["lastMessageDate"] as? Int64, notificationLevel: data["notificationLevel"] as? Int, lastMessageIndex: data["lastMessageIndex"] as? Int, type: data["type"] as? Int)
+    static func fromMap(data: [String: Any?]) -> ConversationArgument {
+        return ConversationArgument(friendlyName: data["friendlyName"] as? String, sid: data["sid"] as? String, dateUpdatedAsDate: data["dateUpdatedAsDate"] as? Int64, dateCreatedAsDate: data["dateCreatedAsDate"] as? Int64, status: data["status"] as? Int, lastMessageDate: data["lastMessageDate"] as? Int64, notificationLevel: data["notificationLevel"] as? Int, lastMessageIndex: data["lastMessageIndex"] as? Int, type: data["type"] as? Int)
     }
 }

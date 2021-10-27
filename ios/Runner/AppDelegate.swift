@@ -18,6 +18,48 @@ import Flutter
         (call: FlutterMethodCall, result: @escaping FlutterResult) -> Void in
         self.flutterResult = result
         switch call.method {
+        case MethodChannelChat.initBasicChatClient:
+            let basicChatClientArgument = BasicChatClientArgument.fromMap(data: call.arguments as! [String: Any?])
+            BasicChatClient.instance.setAppDelegateCallback(delegate: self)
+            BasicChatClient.instance.createClient(accessToken: basicChatClientArgument.accessToken, firebaseToken: nil)
+            break
+        case MethodChannelChat.getChannels:
+            BasicChatClient.instance.clearChannel()
+            BasicChatClient.instance.getListConversation()
+            break
+        case MethodChannelChat.getMessages:
+            BasicChatClient.instance.getmessages(conversationArgument: ConversationArgument.fromMap(data: call.arguments as! [String: Any]))
+            break
+        case MethodChannelChat.removeChannelListener:
+            BasicChatClient.instance.removeConversationListener()
+            break
+        case MethodChannelChat.sendMessage:
+            BasicChatClient.instance.sendMessage(message: call.arguments as! String)
+            break
+        case MethodChannelChat.joinChannel:
+            BasicChatClient.instance.joinConversation(conversationArgument: ConversationArgument.fromMap(data: call.arguments as! [String: Any]))
+            break
+        case MethodChannelChat.generateNewAccessSuccess:
+            BasicChatClient.instance.updateAccessToken(accessToken: call.arguments as! String)
+            break
+        case MethodChannelChat.deleteMessage:
+            BasicChatClient.instance.deleteMessage(messageId: call.arguments as! String)
+            break
+        case MethodChannelChat.updateMessage:
+            BasicChatClient.instance.updateMessage(messageArgument: UpdateMessageArgument.fromMap(json: call.arguments as! [String: Any]))
+            break
+        case MethodChannelChat.createChannel:
+            BasicChatClient.instance.createConversation(conversationName: call.arguments as! String)
+            break
+        case MethodChannelChat.inviteByIdentity:
+            BasicChatClient.instance.inviteByIdentity(identity: call.arguments as! String)
+            break
+        case MethodChannelChat.typing:
+            BasicChatClient.instance.typing()
+            break
+        case MethodChannelChat.getMessageBefore:
+            BasicChatClient.instance.getMessageBefore()
+            break
         default:
             print(" call.method  error \(call.method)")
         }
@@ -27,30 +69,77 @@ import Flutter
 }
 
 extension AppDelegate: AppDelegateCallback {
+    func createChannelResult(result: Any) {
+        if let flutterResult = flutterResult {
+            flutterResult(result)
+        }
+    }
+    
+    func onTypingStarted(description: String) {
+        if let methodChannel = methodChannel {
+            methodChannel.invokeMethod(MethodChannelChat.onTypingStarted, arguments: description)
+        }
+    }
+    
+    func onTypingEnded(description: String) {
+        if let methodChannel = methodChannel {
+            methodChannel.invokeMethod(MethodChannelChat.onTypingEnded, arguments: description)
+        }
+    }
+    
+    func loadMoreMessageComplete(list: [MessageItemArgument]) {
+        if let flutterResult = flutterResult {
+            flutterResult(MessageItemArgument.toMapList(list: list))
+        }
+    }
+    
+    func removeMessageSuccess(messageItemArgument: MessageItemArgument) {
+        if let methodChannel = methodChannel {
+            methodChannel.invokeMethod(MethodChannelChat.deleteMessageSuccess, arguments: messageItemArgument.toMap())
+        }
+    }
+    
+    func updateMessageSuccess(messageItemArgument: MessageItemArgument) {
+        if let methodChannel = methodChannel {
+            methodChannel.invokeMethod(MethodChannelChat.updateMessageSuccess, arguments: messageItemArgument.toMap())
+        }
+    }
+    
     func onCreateBasicChatClientComplete() {
-        
+        if let flutterResult = flutterResult {
+            flutterResult(true)
+        }
     }
     
     func refreshChannelList() {
-        
+        if let methodChannel = methodChannel {
+            methodChannel.invokeMethod(MethodChannelChat.refreshChannelList, arguments: BasicChatClient.instance.getConversations())
+        }
     }
     
     func refreshMessagesList() {
-        
+        if let methodChannel = methodChannel {
+            methodChannel.invokeMethod(MethodChannelChat.refreshMessagesList, arguments: BasicChatClient.instance.getMessageItemList())
+        }
     }
     
     func joinChannelSuccess() {
-        
+        if let flutterResult = flutterResult {
+            flutterResult(true)
+        }
     }
     
     func joinChannelError() {
-        
+        if let flutterResult = flutterResult {
+            flutterResult(false)
+        }
     }
     
     func generateNewAccessToken() {
-        
+        if let methodChannel = methodChannel {
+            methodChannel.invokeMethod(MethodChannelChat.generateNewAccessToken, arguments: nil)
+        }
     }
-    
     
 }
 
@@ -84,4 +173,10 @@ protocol AppDelegateCallback {
     func joinChannelSuccess()
     func joinChannelError()
     func generateNewAccessToken()
+    func removeMessageSuccess(messageItemArgument: MessageItemArgument)
+    func updateMessageSuccess(messageItemArgument: MessageItemArgument)
+    func createChannelResult(result: Any)
+    func onTypingStarted(description: String)
+    func onTypingEnded(description: String)
+    func loadMoreMessageComplete(list: [MessageItemArgument])
 }

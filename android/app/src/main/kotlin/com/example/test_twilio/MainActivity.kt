@@ -32,13 +32,13 @@ class MainActivity: FlutterActivity(), MainActivityCallback {
                     TwilioApplication.instance.basicClient.getMessages(ConversationArgument.fromMap(call.arguments as HashMap<String, Any>))
                 }
                 MethodChannelChat.removeChannelListener -> {
-                    TwilioApplication.instance.basicClient.removeChannelListener()
+                    TwilioApplication.instance.basicClient.removeConversationListener()
                 }
                 MethodChannelChat.sendMessage -> {
                     TwilioApplication.instance.basicClient.sendMessage(call.arguments as String)
                 }
                 MethodChannelChat.joinChannel -> {
-                    TwilioApplication.instance.basicClient.joinChannel(ConversationArgument.fromMap(call.arguments as HashMap<String, Any>))
+                    TwilioApplication.instance.basicClient.joinConversation(ConversationArgument.fromMap(call.arguments as HashMap<String, Any>))
                 }
                 MethodChannelChat.generateNewAccessSuccess -> {
                     TwilioApplication.instance.basicClient.updateAccessToken(call.arguments as String)
@@ -70,7 +70,7 @@ class MainActivity: FlutterActivity(), MainActivityCallback {
     }
 
     override fun refreshChannelList() {
-        methodChannel?.invokeMethod(MethodChannelChat.refreshChannelList, TwilioApplication.instance.basicClient.getChannel())
+        methodChannel?.invokeMethod(MethodChannelChat.refreshChannelList, TwilioApplication.instance.basicClient.getConservations())
     }
 
     override fun refreshMessagesList() {
