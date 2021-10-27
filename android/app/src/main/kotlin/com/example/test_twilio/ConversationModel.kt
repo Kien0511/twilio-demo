@@ -1,4 +1,5 @@
 package com.example.test_twilio
+import android.util.Log
 import com.twilio.conversations.CallbackListener
 import com.twilio.conversations.Conversation
 import com.twilio.conversations.ErrorInfo
@@ -25,6 +26,7 @@ class ConversationModel(conversation: Conversation) {
     }
 
     fun toMap(): HashMap<String, Any?> {
+        Log.e(this@ConversationModel.javaClass.simpleName, "${conversation?.friendlyName}")
         val hashMap = hashMapOf<String, Any?>()
         hashMap["friendlyName"] = conversation?.friendlyName
         hashMap["sid"] = conversation?.sid

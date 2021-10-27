@@ -4,6 +4,8 @@ import ChatCallbackListener
 import ChatStatusListener
 import ToastStatusListener
 import android.content.Context
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
 import com.example.test_twilio.arguments.ConversationArgument
 import com.example.test_twilio.arguments.MessageItemArgument
@@ -114,7 +116,7 @@ class BasicChatClient(private val context: Context)
             setupFcmToken()
         }
 
-        listener?.onCreateBasicChatClientComplete()
+//        listener?.onCreateBasicChatClientComplete()
     }
 
     override fun onConversationAdded(conversation: Conversation?) {
@@ -159,8 +161,15 @@ class BasicChatClient(private val context: Context)
         }
     }
 
-    override fun onClientSynchronization(p0: ConversationsClient.SynchronizationStatus?) {}
-    override fun onConnectionStateChange(p0: ConversationsClient.ConnectionState?) {}
+    override fun onClientSynchronization(synchronizationStatus: ConversationsClient.SynchronizationStatus?) {
+        Log.e(this@BasicChatClient.javaClass.simpleName, "onClientSynchronization: ${synchronizationStatus?.toString()}")
+        if (synchronizationStatus == ConversationsClient.SynchronizationStatus.COMPLETED) {
+            listener?.onCreateBasicChatClientComplete()
+        }
+    }
+    override fun onConnectionStateChange(connectionState: ConversationsClient.ConnectionState?) {
+        Log.e(this@BasicChatClient.javaClass.simpleName, "onConnectionStateChange: ${connectionState.toString()}")
+    }
     override fun onUserSubscribed(p0: User?) {}
     override fun onUserUnsubscribed(p0: User?) {}
     override fun onUserUpdated(p0: User?, p1: User.UpdateReason?) {}
@@ -172,13 +181,15 @@ class BasicChatClient(private val context: Context)
 
     fun getListConversation() {
         conversationsClient?.myConversations?.forEach { conversation ->
-                Log.e(this@BasicChatClient.javaClass.simpleName, "getListConversation: ${conversation.friendlyName}")
-                channels[conversation.sid] = ConversationModel(conversation)
+            Log.e(this@BasicChatClient.javaClass.simpleName, "getListConversation: ${conversation.friendlyName}")
+            Log.e(this@BasicChatClient.javaClass.simpleName, "getListConversation: ${conversation.sid}")
+            channels[conversation.sid] = ConversationModel(conversation)
         }
         refreshChannelList()
     }
 
     private fun refreshChannelList() {
+        Log.e(this@BasicChatClient.javaClass.simpleName, "refreshChannelList")
         listener?.refreshChannelList()
     }
 
