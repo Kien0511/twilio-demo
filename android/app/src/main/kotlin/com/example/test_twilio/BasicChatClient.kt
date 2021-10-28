@@ -19,7 +19,7 @@ class BasicChatClient(private val context: Context)
     private var accessToken: String? = null
     private var fcmToken: String? = null
     private val conversations = HashMap<String?, ConversationModel>()
-    private var listener: MainActivityCallback? = null
+    private var listener: ChatCallback? = null
     private var messageClient: MessageClient? = null
 
     private var conversationsClient: ConversationsClient? = null
@@ -42,7 +42,7 @@ class BasicChatClient(private val context: Context)
         conversations.clear()
     }
 
-    fun setMainActivityCallback(listener: MainActivityCallback) {
+    fun setMainActivityCallback(listener: ChatCallback) {
         this.listener = listener
     }
 

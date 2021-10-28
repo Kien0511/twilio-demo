@@ -13,10 +13,10 @@ class BasicChatClient: NSObject {
     var conversationsClient: TwilioConversationsClient? = nil
     var accessToken: String? = nil
     var firebaseToken: String? = nil
-    private var delegate: AppDelegateCallback? = nil
+    private var delegate: ChatDelegate? = nil
     private var conversations: [String: ConversationModel] = [:]
     
-    func setAppDelegateCallback(delegate: AppDelegateCallback) {
+    func setAppDelegateCallback(delegate: ChatDelegate) {
         self.delegate = delegate
     }
     
