@@ -10,6 +10,10 @@ class MessageModel {
   int? messageIndex;
   int? type;
   bool? hasMedia;
+  String? mediaFileName;
+  String? mediaSid;
+  String? mediaType;
+  int? mediaSize;
 
   MessageModel.fromJson(Map<String, dynamic> json) {
     sid = json["sid"];
@@ -23,5 +27,9 @@ class MessageModel {
     messageIndex = json["messageIndex"];
     type = json["type"];
     hasMedia = json["hasMedia"];
+    mediaFileName = json["mediaFileName"];
+    mediaSid = json["mediaSid"];
+    mediaType = json["mediaType"];
+    mediaSize = json["mediaSize"];
   }
 }

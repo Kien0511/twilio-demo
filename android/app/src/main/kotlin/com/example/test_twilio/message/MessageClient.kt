@@ -2,13 +2,21 @@ package com.example.test_twilio.message
 
 import ChatCallbackListener
 import ChatStatusListener
+import android.database.Cursor
+import android.net.Uri
+import android.provider.OpenableColumns
 import android.util.Log
+import android.webkit.MimeTypeMap
 import com.example.test_twilio.BasicChatClientCallback
+import com.example.test_twilio.TwilioApplication
 import com.example.test_twilio.arguments.MessageItemArgument
-import com.twilio.conversations.Conversation
-import com.twilio.conversations.ConversationListener
-import com.twilio.conversations.Message
-import com.twilio.conversations.Participant
+import com.twilio.conversations.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import java.io.File
+import java.io.FileInputStream
+import java.io.InputStream
 import java.util.ArrayList
 
 class MessageClient: ConversationListener{
@@ -202,5 +210,55 @@ class MessageClient: ConversationListener{
                     }
             ))
         }
+    }
+
+    fun sendFile(filePath: String) {
+        CoroutineScope(Dispatchers.IO).launch {
+            kotlin.runCatching {
+                try {
+                    val file = File(filePath)
+                    val name = file.name
+                    val type = getMimeType(filePath)
+                    val stream = FileInputStream(file)
+
+                    val options = Message.options()
+                            .withMediaFileName(name)
+                            .withMedia(stream, type)
+                            .withMediaProgressListener(object : ProgressListener {
+                                override fun onStarted() {
+                                    Log.e(this@MessageClient.javaClass.simpleName, "onStarted")
+                                }
+
+                                override fun onProgress(bytes: Long) {
+                                    Log.e(this@MessageClient.javaClass.simpleName, "onProgress: $bytes")
+                                }
+
+                                override fun onCompleted(mediaSid: String?) {
+                                    Log.e(this@MessageClient.javaClass.simpleName, "onCompleted")
+                                }
+                            })
+
+                    conversation?.sendMessage(options, ChatCallbackListener(
+                            success = {
+                                Log.e(this@MessageClient.javaClass.simpleName, "send message callback success: $it")
+                            },
+                            fail = {
+                                Log.e(this@MessageClient.javaClass.simpleName, "send message callback error: $it")
+                            }
+                    ))
+                } catch (e: Exception) {
+                    Log.e(this@MessageClient.javaClass.simpleName, e.printStackTrace().toString())
+                } finally {
+                }
+            }
+
+        }
+    }
+
+    private fun getMimeType(url: String?): String? {
+        val type: String?
+        val extension: String = MimeTypeMap.getFileExtensionFromUrl(url)
+        type = MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension)
+        return type
     }
 }

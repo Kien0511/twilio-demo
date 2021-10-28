@@ -174,6 +174,10 @@ class BasicChatChannel {
       return null;
     }
   }
+
+  void sendFile(String filePath) {
+    _methodChannel?.invokeMethod(MethodChannelChat.sendFile, filePath);
+  }
 }
 
 class MethodChannelChat {
@@ -197,4 +201,5 @@ class MethodChannelChat {
   static const String onTypingStarted = "onTypingStarted";
   static const String onTypingEnded = "onTypingEnded";
   static const String getMessageBefore = "getMessageBefore";
+  static const String sendFile = "sendFile";
 }

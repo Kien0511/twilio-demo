@@ -1,12 +1,16 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:test_twilio/model/conversation_model.dart';
 import 'package:test_twilio/model/message_item_model.dart';
 import 'package:test_twilio/services/basic_chat_channel.dart';
 import 'package:test_twilio/widgets/custom_input_text_field.dart';
 import 'package:test_twilio/widgets/message_list_action.dart';
+import 'package:test_twilio/widgets/send_file_list_action.dart';
 
 class ChatController extends GetxController {
   final ConversationModel channelModel;
@@ -139,5 +143,41 @@ class ChatController extends GetxController {
     if (listMessageController.offset >= listMessageController.position.maxScrollExtent - 100.0) {
       getMessageBefore();
     }
+  }
+
+  void sendFile() async {
+    if (Platform.isAndroid) {
+      if (await Permission.storage.request().isGranted) {
+        _sendFileListAction();
+      }
+    } else {
+      if (await Permission.photos.request().isGranted || await Permission.photos.request().isLimited) {
+        _sendFileListAction();
+      }
+    }
+
+  }
+
+  void _sendFileListAction() {
+    final ImagePicker imagePicker = ImagePicker();
+    Get.bottomSheet(SendFileListAction(
+      sendImageGallery: () async {
+        final XFile? image = await imagePicker.pickImage(source: ImageSource.gallery);
+        if (image != null) {
+          BasicChatChannel().sendFile(image.path);
+        } else {
+          print("image picker error");
+        }
+      },
+      sendImageCamera: () {
+
+      },
+      sendVideoGallery: () {
+
+      },
+      sendVideoCamera: () {
+
+      },
+    ));
   }
 }

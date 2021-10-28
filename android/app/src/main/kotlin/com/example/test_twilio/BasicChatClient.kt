@@ -293,6 +293,10 @@ class BasicChatClient(private val context: Context)
     fun getMessageBefore() {
         messageClient?.getMessageBefore()
     }
+
+    fun sendFile(filePath: String) {
+        messageClient?.sendFile(filePath)
+    }
 }
 
 interface BasicChatClientCallback {

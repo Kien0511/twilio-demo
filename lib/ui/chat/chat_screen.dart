@@ -128,6 +128,15 @@ class ChatScreen extends GetView<ChatController> {
           height: 40.0,
           child: InkWell(
             onTap: () {
+              controller.sendFile();
+            },
+            child: Center(child: Text("send file")),
+          ),
+        ),
+        Container(
+          height: 40.0,
+          child: InkWell(
+            onTap: () {
               controller.sendMessage();
             },
             child: Center(child: Text("Send Message")),

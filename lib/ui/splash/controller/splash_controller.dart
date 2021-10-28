@@ -14,7 +14,7 @@ class SplashController extends GetxController {
   void onInit() {
     super.onInit();
     Future.delayed(Duration(seconds: 2)).then((_) {
-      Get.offAllNamed(RouteName.videoCall);
+      Get.offAllNamed(RouteName.login);
     });
   }
 }

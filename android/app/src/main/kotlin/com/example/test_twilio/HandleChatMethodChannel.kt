@@ -73,6 +73,9 @@ class HandleChatMethodChannel: ChatCallback {
                 MethodChannelChat.getMessageBefore -> {
                     TwilioApplication.instance.basicClient.getMessageBefore()
                 }
+                MethodChannelChat.sendFile -> {
+                    TwilioApplication.instance.basicClient.sendFile(call.arguments as String)
+                }
             }
         }
     }
@@ -148,6 +151,7 @@ class MethodChannelChat {
         const val onTypingStarted = "onTypingStarted"
         const val onTypingEnded = "onTypingEnded"
         const val getMessageBefore = "getMessageBefore"
+        const val sendFile = "sendFile"
     }
 }
 

@@ -36,6 +36,12 @@ class MessageItemArgument(val message: Message, val members: List<Participant>) 
         hashMap["messageIndex"] = message.messageIndex
         hashMap["type"] = message.type.value
         hashMap["hasMedia"] = message.hasMedia()
+        if (message.hasMedia()) {
+            hashMap["mediaFileName"] = message.mediaFileName
+            hashMap["mediaSid"] = message.mediaSid
+            hashMap["mediaType"] = message.mediaType
+            hashMap["mediaSize"] = message.mediaSize
+        }
         return hashMap
     }
 
