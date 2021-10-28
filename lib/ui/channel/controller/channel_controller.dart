@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:test_twilio/model/conversation_model.dart';
 import 'package:test_twilio/routes/router.dart';
 import 'package:test_twilio/services/arguments/basic_chat_client_argument.dart';
@@ -88,5 +89,10 @@ class ChannelController extends GetxController {
       }
       Get.back();
     },));
+  }
+
+  void openVideoCall() async {
+    await Permission.camera.request();
+    Get.toNamed(RouteName.videoCall);
   }
 }

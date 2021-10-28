@@ -46,6 +46,20 @@ class ChannelScreen extends GetView<ChannelController> {
                   child: Center(child: Text("create channel")),
                 ),
               ),
+
+              InkWell(
+                onTap: () {
+                  controller.openVideoCall();
+                },
+                child: Container(
+                  width: Get.width,
+                  height: 56.0,
+                  color: Colors.red,
+                  margin: EdgeInsets.all(8.0),
+                  padding: EdgeInsets.all(8.0),
+                  child: Center(child: Text("open room video call")),
+                ),
+              ),
             ],
           ),
         ),

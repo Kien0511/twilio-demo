@@ -11,12 +11,15 @@ import 'package:test_twilio/ui/login/binding/login_binding.dart';
 import 'package:test_twilio/ui/login/login_screen.dart';
 import 'package:test_twilio/ui/splash/bindings/splash_binding.dart';
 import 'package:test_twilio/ui/splash/splash_screen.dart';
+import 'package:test_twilio/ui/video_call/binding/video_call_binding.dart';
+import 'package:test_twilio/ui/video_call/video_call_screen.dart';
 
 class RouteName {
   static const String splash = "/splash";
   static const String login = "/login";
   static const String channel = "/channel";
   static const String chat = "/chat";
+  static const String videoCall = "/videoCall";
 }
 
 /// AppRouter manages routes of app
@@ -43,6 +46,11 @@ class AppRouter {
         return GetPageRoute(
             page: () => ChatScreen(),
             binding: ChatBinding(settings.arguments as ConversationModel),
+            settings: settings);
+      case RouteName.videoCall:
+        return GetPageRoute(
+            page: () => VideoCallScreen(),
+            binding: VideoCallBinding(),
             settings: settings);
       default:
         return GetPageRoute<Widget>(
