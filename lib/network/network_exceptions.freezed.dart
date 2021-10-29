@@ -1,5 +1,6 @@
+// coverage:ignore-file
 // GENERATED CODE - DO NOT MODIFY BY HAND
-// ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides
+// ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target
 
 part of 'network_exceptions.dart';
 
@@ -57,6 +58,15 @@ mixin _$NetworkExceptions {
   }) =>
       throw _privateConstructorUsedError;
   @optionalTypeArgs
+  TResult? whenOrNull<TResult extends Object?>({
+    TResult Function()? unauthorisedRequest,
+    TResult Function()? noInternetConnection,
+    TResult Function(dynamic error)? invalidateError,
+    TResult Function(int code, String message)? serverExceptionError,
+    TResult Function()? defaultError,
+  }) =>
+      throw _privateConstructorUsedError;
+  @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>({
     TResult Function()? unauthorisedRequest,
     TResult Function()? noInternetConnection,
@@ -73,6 +83,15 @@ mixin _$NetworkExceptions {
     required TResult Function(InvalidateError value) invalidateError,
     required TResult Function(ServerExceptionError value) serverExceptionError,
     required TResult Function(DefaultError value) defaultError,
+  }) =>
+      throw _privateConstructorUsedError;
+  @optionalTypeArgs
+  TResult? mapOrNull<TResult extends Object?>({
+    TResult Function(UnauthorisedRequest value)? unauthorisedRequest,
+    TResult Function(NoInternetConnection value)? noInternetConnection,
+    TResult Function(InvalidateError value)? invalidateError,
+    TResult Function(ServerExceptionError value)? serverExceptionError,
+    TResult Function(DefaultError value)? defaultError,
   }) =>
       throw _privateConstructorUsedError;
   @optionalTypeArgs
@@ -145,7 +164,8 @@ class _$UnauthorisedRequest
 
   @override
   bool operator ==(dynamic other) {
-    return identical(this, other) || (other is UnauthorisedRequest);
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType && other is UnauthorisedRequest);
   }
 
   @override
@@ -161,6 +181,18 @@ class _$UnauthorisedRequest
     required TResult Function() defaultError,
   }) {
     return unauthorisedRequest();
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult? whenOrNull<TResult extends Object?>({
+    TResult Function()? unauthorisedRequest,
+    TResult Function()? noInternetConnection,
+    TResult Function(dynamic error)? invalidateError,
+    TResult Function(int code, String message)? serverExceptionError,
+    TResult Function()? defaultError,
+  }) {
+    return unauthorisedRequest?.call();
   }
 
   @override
@@ -189,6 +221,18 @@ class _$UnauthorisedRequest
     required TResult Function(DefaultError value) defaultError,
   }) {
     return unauthorisedRequest(this);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult? mapOrNull<TResult extends Object?>({
+    TResult Function(UnauthorisedRequest value)? unauthorisedRequest,
+    TResult Function(NoInternetConnection value)? noInternetConnection,
+    TResult Function(InvalidateError value)? invalidateError,
+    TResult Function(ServerExceptionError value)? serverExceptionError,
+    TResult Function(DefaultError value)? defaultError,
+  }) {
+    return unauthorisedRequest?.call(this);
   }
 
   @override
@@ -253,7 +297,8 @@ class _$NoInternetConnection
 
   @override
   bool operator ==(dynamic other) {
-    return identical(this, other) || (other is NoInternetConnection);
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType && other is NoInternetConnection);
   }
 
   @override
@@ -269,6 +314,18 @@ class _$NoInternetConnection
     required TResult Function() defaultError,
   }) {
     return noInternetConnection();
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult? whenOrNull<TResult extends Object?>({
+    TResult Function()? unauthorisedRequest,
+    TResult Function()? noInternetConnection,
+    TResult Function(dynamic error)? invalidateError,
+    TResult Function(int code, String message)? serverExceptionError,
+    TResult Function()? defaultError,
+  }) {
+    return noInternetConnection?.call();
   }
 
   @override
@@ -297,6 +354,18 @@ class _$NoInternetConnection
     required TResult Function(DefaultError value) defaultError,
   }) {
     return noInternetConnection(this);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult? mapOrNull<TResult extends Object?>({
+    TResult Function(UnauthorisedRequest value)? unauthorisedRequest,
+    TResult Function(NoInternetConnection value)? noInternetConnection,
+    TResult Function(InvalidateError value)? invalidateError,
+    TResult Function(ServerExceptionError value)? serverExceptionError,
+    TResult Function(DefaultError value)? defaultError,
+  }) {
+    return noInternetConnection?.call(this);
   }
 
   @override
@@ -378,14 +447,14 @@ class _$InvalidateError
   @override
   bool operator ==(dynamic other) {
     return identical(this, other) ||
-        (other is InvalidateError &&
-            (identical(other.error, error) ||
-                const DeepCollectionEquality().equals(other.error, error)));
+        (other.runtimeType == runtimeType &&
+            other is InvalidateError &&
+            const DeepCollectionEquality().equals(other.error, error));
   }
 
   @override
   int get hashCode =>
-      runtimeType.hashCode ^ const DeepCollectionEquality().hash(error);
+      Object.hash(runtimeType, const DeepCollectionEquality().hash(error));
 
   @JsonKey(ignore: true)
   @override
@@ -402,6 +471,18 @@ class _$InvalidateError
     required TResult Function() defaultError,
   }) {
     return invalidateError(error);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult? whenOrNull<TResult extends Object?>({
+    TResult Function()? unauthorisedRequest,
+    TResult Function()? noInternetConnection,
+    TResult Function(dynamic error)? invalidateError,
+    TResult Function(int code, String message)? serverExceptionError,
+    TResult Function()? defaultError,
+  }) {
+    return invalidateError?.call(error);
   }
 
   @override
@@ -434,6 +515,18 @@ class _$InvalidateError
 
   @override
   @optionalTypeArgs
+  TResult? mapOrNull<TResult extends Object?>({
+    TResult Function(UnauthorisedRequest value)? unauthorisedRequest,
+    TResult Function(NoInternetConnection value)? noInternetConnection,
+    TResult Function(InvalidateError value)? invalidateError,
+    TResult Function(ServerExceptionError value)? serverExceptionError,
+    TResult Function(DefaultError value)? defaultError,
+  }) {
+    return invalidateError?.call(this);
+  }
+
+  @override
+  @optionalTypeArgs
   TResult maybeMap<TResult extends Object?>({
     TResult Function(UnauthorisedRequest value)? unauthorisedRequest,
     TResult Function(NoInternetConnection value)? noInternetConnection,
@@ -452,7 +545,7 @@ class _$InvalidateError
 abstract class InvalidateError implements NetworkExceptions {
   const factory InvalidateError(dynamic error) = _$InvalidateError;
 
-  dynamic get error => throw _privateConstructorUsedError;
+  dynamic get error;
   @JsonKey(ignore: true)
   $InvalidateErrorCopyWith<InvalidateError> get copyWith =>
       throw _privateConstructorUsedError;
@@ -525,18 +618,14 @@ class _$ServerExceptionError
   @override
   bool operator ==(dynamic other) {
     return identical(this, other) ||
-        (other is ServerExceptionError &&
-            (identical(other.code, code) ||
-                const DeepCollectionEquality().equals(other.code, code)) &&
-            (identical(other.message, message) ||
-                const DeepCollectionEquality().equals(other.message, message)));
+        (other.runtimeType == runtimeType &&
+            other is ServerExceptionError &&
+            (identical(other.code, code) || other.code == code) &&
+            (identical(other.message, message) || other.message == message));
   }
 
   @override
-  int get hashCode =>
-      runtimeType.hashCode ^
-      const DeepCollectionEquality().hash(code) ^
-      const DeepCollectionEquality().hash(message);
+  int get hashCode => Object.hash(runtimeType, code, message);
 
   @JsonKey(ignore: true)
   @override
@@ -554,6 +643,18 @@ class _$ServerExceptionError
     required TResult Function() defaultError,
   }) {
     return serverExceptionError(code, message);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult? whenOrNull<TResult extends Object?>({
+    TResult Function()? unauthorisedRequest,
+    TResult Function()? noInternetConnection,
+    TResult Function(dynamic error)? invalidateError,
+    TResult Function(int code, String message)? serverExceptionError,
+    TResult Function()? defaultError,
+  }) {
+    return serverExceptionError?.call(code, message);
   }
 
   @override
@@ -586,6 +687,18 @@ class _$ServerExceptionError
 
   @override
   @optionalTypeArgs
+  TResult? mapOrNull<TResult extends Object?>({
+    TResult Function(UnauthorisedRequest value)? unauthorisedRequest,
+    TResult Function(NoInternetConnection value)? noInternetConnection,
+    TResult Function(InvalidateError value)? invalidateError,
+    TResult Function(ServerExceptionError value)? serverExceptionError,
+    TResult Function(DefaultError value)? defaultError,
+  }) {
+    return serverExceptionError?.call(this);
+  }
+
+  @override
+  @optionalTypeArgs
   TResult maybeMap<TResult extends Object?>({
     TResult Function(UnauthorisedRequest value)? unauthorisedRequest,
     TResult Function(NoInternetConnection value)? noInternetConnection,
@@ -605,8 +718,8 @@ abstract class ServerExceptionError implements NetworkExceptions {
   const factory ServerExceptionError(int code, String message) =
       _$ServerExceptionError;
 
-  int get code => throw _privateConstructorUsedError;
-  String get message => throw _privateConstructorUsedError;
+  int get code;
+  String get message;
   @JsonKey(ignore: true)
   $ServerExceptionErrorCopyWith<ServerExceptionError> get copyWith =>
       throw _privateConstructorUsedError;
@@ -650,7 +763,8 @@ class _$DefaultError with DiagnosticableTreeMixin implements DefaultError {
 
   @override
   bool operator ==(dynamic other) {
-    return identical(this, other) || (other is DefaultError);
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType && other is DefaultError);
   }
 
   @override
@@ -666,6 +780,18 @@ class _$DefaultError with DiagnosticableTreeMixin implements DefaultError {
     required TResult Function() defaultError,
   }) {
     return defaultError();
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult? whenOrNull<TResult extends Object?>({
+    TResult Function()? unauthorisedRequest,
+    TResult Function()? noInternetConnection,
+    TResult Function(dynamic error)? invalidateError,
+    TResult Function(int code, String message)? serverExceptionError,
+    TResult Function()? defaultError,
+  }) {
+    return defaultError?.call();
   }
 
   @override
@@ -694,6 +820,18 @@ class _$DefaultError with DiagnosticableTreeMixin implements DefaultError {
     required TResult Function(DefaultError value) defaultError,
   }) {
     return defaultError(this);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult? mapOrNull<TResult extends Object?>({
+    TResult Function(UnauthorisedRequest value)? unauthorisedRequest,
+    TResult Function(NoInternetConnection value)? noInternetConnection,
+    TResult Function(InvalidateError value)? invalidateError,
+    TResult Function(ServerExceptionError value)? serverExceptionError,
+    TResult Function(DefaultError value)? defaultError,
+  }) {
+    return defaultError?.call(this);
   }
 
   @override

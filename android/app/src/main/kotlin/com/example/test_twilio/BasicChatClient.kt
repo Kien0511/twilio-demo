@@ -7,6 +7,7 @@ import android.content.Context
 import android.util.Log
 import com.example.test_twilio.arguments.ConversationArgument
 import com.example.test_twilio.arguments.MessageItemArgument
+import com.example.test_twilio.arguments.SendMessageArgument
 import com.example.test_twilio.arguments.UpdateMessageArgument
 import com.example.test_twilio.message.MessageClient
 import com.twilio.conversations.*
@@ -208,7 +209,7 @@ class BasicChatClient(private val context: Context)
 
         messageClient?.messageItemList?.let {
             for (messageItem in it) {
-                listHashMap.add(messageItem.toMap())
+                listHashMap.add(messageItem.toMap(listener))
             }
         }
         return listHashMap
@@ -222,8 +223,8 @@ class BasicChatClient(private val context: Context)
         listener?.refreshMessagesList()
     }
 
-    fun sendMessage(message: String) {
-        messageClient?.sendMessage(message)
+    fun sendMessage(sendMessageArgument: SendMessageArgument) {
+        messageClient?.sendMessage(sendMessageArgument)
     }
 
     fun joinConversation(conversationArgument: ConversationArgument) {
@@ -294,13 +295,18 @@ class BasicChatClient(private val context: Context)
         messageClient?.getMessageBefore()
     }
 
-    fun sendFile(filePath: String) {
-        messageClient?.sendFile(filePath)
+    fun sendFile(sendMessageArgument: SendMessageArgument) {
+        messageClient?.sendFile(sendMessageArgument)
+    }
+
+    override fun addMessageSuccess(messageItemArgument: MessageItemArgument) {
+        listener?.addMessageSuccess(messageItemArgument)
     }
 }
 
 interface BasicChatClientCallback {
     fun getMessageCompleted()
+    fun addMessageSuccess(messageItemArgument: MessageItemArgument)
     fun removeMessageSuccess(messageItemArgument: MessageItemArgument)
     fun updateMessageSuccess(messageItemArgument: MessageItemArgument)
     fun onTypingStarted(description: String)

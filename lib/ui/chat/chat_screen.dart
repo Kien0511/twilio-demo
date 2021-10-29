@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/src/widgets/framework.dart';
 import 'package:get/get.dart';
@@ -82,7 +83,7 @@ class ChatScreen extends GetView<ChatController> {
           constraints: BoxConstraints(
               maxWidth: 256.0
           ),
-          child: Container(
+          child: messageItem.message?.hasMedia == true ? _buildMediaMessage(messageItem) : Container(
               color: Colors.red,
               padding: EdgeInsets.only(left: 8.0, right: 8.0, top: 4.0, bottom: 4.0),
               child: Text("${messageItem.message?.messageBody}")),
@@ -99,7 +100,7 @@ class ChatScreen extends GetView<ChatController> {
           constraints: BoxConstraints(
             maxWidth: 256.0
           ),
-          child: InkWell(
+          child: messageItem.message?.hasMedia == true ? _buildMediaMessage(messageItem) : InkWell(
             onLongPress: () {
               controller.showMessageListAction(messageItem);
             },
@@ -111,6 +112,15 @@ class ChatScreen extends GetView<ChatController> {
         )
       ],
     );
+  }
+
+  Widget _buildMediaMessage(MessageItemModel messageItem) {
+    final url = messageItem.message?.mediaUrl;
+    return url?.isNotEmpty == true ? CachedNetworkImage(
+      imageUrl: url!,
+      placeholder: (context, url) => CircularProgressIndicator(),
+      errorWidget: (context, url, error) => Icon(Icons.error),
+    ) : CircularProgressIndicator();
   }
 
   Widget _buildInputMessage() {

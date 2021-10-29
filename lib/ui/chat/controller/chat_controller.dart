@@ -6,11 +6,15 @@ import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:test_twilio/model/conversation_model.dart';
+import 'package:test_twilio/model/media_file_path_model.dart';
 import 'package:test_twilio/model/message_item_model.dart';
+import 'package:test_twilio/services/arguments/send_message_argument.dart';
 import 'package:test_twilio/services/basic_chat_channel.dart';
 import 'package:test_twilio/widgets/custom_input_text_field.dart';
 import 'package:test_twilio/widgets/message_list_action.dart';
 import 'package:test_twilio/widgets/send_file_list_action.dart';
+import 'package:test_twilio/common/extensions/iterable_extension.dart';
+import 'package:uuid/uuid.dart';
 
 class ChatController extends GetxController {
   final ConversationModel channelModel;
@@ -34,10 +38,12 @@ class ChatController extends GetxController {
     super.onInit();
     Future.delayed(Duration(milliseconds: 100)).then((_) {
       setRefreshMessagesListCallback();
+      setMessageAddCallback();
       setMessageDeleteCallback();
       setMessageUpdateCallback();
       setTypingCallback();
       typing();
+      setMediaCallback();
       BasicChatChannel().getMessages(channelModel);
     });
   }
@@ -54,6 +60,20 @@ class ChatController extends GetxController {
     });
   }
 
+  void setMediaCallback() {
+    BasicChatChannel().setMediaCallback((mediaFile) {
+      if (mediaFile is Map) {
+        final media = MediaFilePathModel.fromJson(Map<String, dynamic>.from(mediaFile));
+        final index = listMessage.indexWhere((element) =>
+        element.message?.sid == media.messageSid);
+        final newItem = listMessage[index];
+        newItem.message?.mediaUrl = media.url;
+        listMessage.removeAt(index);
+        listMessage.insert(index, newItem);
+      }
+    });
+  }
+
   void setRefreshMessagesListCallback() {
     BasicChatChannel().setRefreshMessagesListCallback((data) async {
       if (data is List) {
@@ -67,6 +87,13 @@ class ChatController extends GetxController {
         this.listMessage.addAll(listMessage.reversed);
       }
       print(data);
+    });
+  }
+
+  void setMessageAddCallback() {
+    BasicChatChannel().setMessageAddCallback((data) {
+      final messageItem = MessageItemModel.fromJson(Map<String, dynamic>.from(data as Map));
+      this.listMessage.insert(0, messageItem);
     });
   }
 
@@ -96,7 +123,7 @@ class ChatController extends GetxController {
 
   void sendMessage() {
     if (inputTextController.text.trim().toString().isNotEmpty) {
-      BasicChatChannel().sendMessage(inputTextController.text.trim().toString());
+      BasicChatChannel().sendMessage(SendMessageArgument(inputTextController.text.trim().toString(), Uuid().v4()));
       inputTextController.text = "";
     }
   }
@@ -164,7 +191,7 @@ class ChatController extends GetxController {
       sendImageGallery: () async {
         final XFile? image = await imagePicker.pickImage(source: ImageSource.gallery);
         if (image != null) {
-          BasicChatChannel().sendFile(image.path);
+          BasicChatChannel().sendFile(SendMessageArgument(image.path, Uuid().v4()));
         } else {
           print("image picker error");
         }

@@ -10,10 +10,12 @@ import android.webkit.MimeTypeMap
 import com.example.test_twilio.BasicChatClientCallback
 import com.example.test_twilio.TwilioApplication
 import com.example.test_twilio.arguments.MessageItemArgument
+import com.example.test_twilio.arguments.SendMessageArgument
 import com.twilio.conversations.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import org.json.JSONObject
 import java.io.File
 import java.io.FileInputStream
 import java.io.InputStream
@@ -64,8 +66,9 @@ class MessageClient: ConversationListener{
     override fun onMessageAdded(message: Message?) {
         Log.e(this@MessageClient.javaClass.name, "onMessageAdded ${message.toString()}")
         conversation?.participantsList?.let {
-            messageItemList.add(MessageItemArgument(message!!, it))
-            listener?.getMessageCompleted()
+            val item = MessageItemArgument(message!!, it)
+            messageItemList.add(item)
+            listener?.addMessageSuccess(item)
         }
     }
 
@@ -131,8 +134,10 @@ class MessageClient: ConversationListener{
         conversation?.addListener(this)
     }
 
-    fun sendMessage(message: String) {
-        conversation?.sendMessage(Message.options().withBody(message),  ChatCallbackListener<Message>(success = {
+    fun sendMessage(message: SendMessageArgument) {
+        val jsonObject = JSONObject()
+        jsonObject.put("messageId", message.messageId)
+        conversation?.sendMessage(Message.options().withAttributes(Attributes(jsonObject)).withBody(message.messageBody),  ChatCallbackListener<Message>(success = {
             Log.e(this@MessageClient.javaClass.simpleName, "send message callback success: $it")
         }, fail = {
             Log.e(this@MessageClient.javaClass.simpleName, "send message callback error: $it")
@@ -212,44 +217,42 @@ class MessageClient: ConversationListener{
         }
     }
 
-    fun sendFile(filePath: String) {
+    fun sendFile(message: SendMessageArgument) {
         CoroutineScope(Dispatchers.IO).launch {
             kotlin.runCatching {
-                try {
-                    val file = File(filePath)
-                    val name = file.name
-                    val type = getMimeType(filePath)
-                    val stream = FileInputStream(file)
+                val file = File(message.messageBody!!)
+                val name = file.name
+                val type = getMimeType(message.messageBody)
+                val stream = FileInputStream(file)
+                val jsonObject = JSONObject()
+                jsonObject.put("messageId", message.messageId)
 
-                    val options = Message.options()
-                            .withMediaFileName(name)
-                            .withMedia(stream, type)
-                            .withMediaProgressListener(object : ProgressListener {
-                                override fun onStarted() {
-                                    Log.e(this@MessageClient.javaClass.simpleName, "onStarted")
-                                }
-
-                                override fun onProgress(bytes: Long) {
-                                    Log.e(this@MessageClient.javaClass.simpleName, "onProgress: $bytes")
-                                }
-
-                                override fun onCompleted(mediaSid: String?) {
-                                    Log.e(this@MessageClient.javaClass.simpleName, "onCompleted")
-                                }
-                            })
-
-                    conversation?.sendMessage(options, ChatCallbackListener(
-                            success = {
-                                Log.e(this@MessageClient.javaClass.simpleName, "send message callback success: $it")
-                            },
-                            fail = {
-                                Log.e(this@MessageClient.javaClass.simpleName, "send message callback error: $it")
+                val options = Message.options()
+                        .withMediaFileName(name)
+                        .withMedia(stream, type)
+                        .withAttributes(Attributes(jsonObject))
+                        .withMediaProgressListener(object : ProgressListener {
+                            override fun onStarted() {
+                                Log.e(this@MessageClient.javaClass.simpleName, "onStarted")
                             }
-                    ))
-                } catch (e: Exception) {
-                    Log.e(this@MessageClient.javaClass.simpleName, e.printStackTrace().toString())
-                } finally {
-                }
+
+                            override fun onProgress(bytes: Long) {
+                                Log.e(this@MessageClient.javaClass.simpleName, "onProgress: $bytes")
+                            }
+
+                            override fun onCompleted(mediaSid: String?) {
+                                Log.e(this@MessageClient.javaClass.simpleName, "onCompleted")
+                            }
+                        })
+
+                conversation?.sendMessage(options, ChatCallbackListener(
+                        success = {
+                            Log.e(this@MessageClient.javaClass.simpleName, "send message callback success: $it")
+                        },
+                        fail = {
+                            Log.e(this@MessageClient.javaClass.simpleName, "send message callback error: $it")
+                        }
+                ))
             }
 
         }

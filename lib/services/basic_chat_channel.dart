@@ -4,6 +4,7 @@ import 'package:test_twilio/model/conversation_model.dart';
 import 'package:test_twilio/network/api_result.dart';
 import 'package:test_twilio/repository/user_chat_repository.dart';
 import 'package:test_twilio/services/arguments/basic_chat_client_argument.dart';
+import 'package:test_twilio/services/arguments/send_message_argument.dart';
 import 'package:test_twilio/services/arguments/update_message_argument.dart';
 import 'package:test_twilio/ui/login/controller/login_controller.dart';
 
@@ -21,9 +22,11 @@ class BasicChatChannel {
 
   Function? _refreshChannelListCallback;
   Function? _refreshMessagesListCallback;
-  Function? _onMessageDelete;
-  Function? _onMessageUpdate;
+  Function? _onMessageDeleted;
+  Function? _onMessageUpdated;
+  Function? _onMessageAdded;
   Function(String)? _typingCallback;
+  Function? _mediaCallback;
 
   void setRefreshChannelListCallback(Function refreshChannelListCallback) {
     this._refreshChannelListCallback = refreshChannelListCallback;
@@ -41,20 +44,20 @@ class BasicChatChannel {
     _refreshMessagesListCallback = null;
   }
 
-  void setMessageDeleteCallback(Function onMessageDelete) {
-    this._onMessageDelete = onMessageDelete;
+  void setMessageDeleteCallback(Function onMessageDeleted) {
+    this._onMessageDeleted = onMessageDeleted;
   }
 
   void removeMessageDeleteCallback() {
-    this._onMessageDelete = null;
+    this._onMessageDeleted = null;
   }
 
-  void setMessageUpdateCallback(Function onMessageUpdate) {
-    this._onMessageUpdate = onMessageUpdate;
+  void setMessageUpdateCallback(Function onMessageUpdated) {
+    this._onMessageUpdated = onMessageUpdated;
   }
 
   void removeMessageUpdateCallback() {
-    this._onMessageUpdate = null;
+    this._onMessageUpdated = null;
   }
 
   void setTypingCallback(Function(String) typingCallback) {
@@ -63,6 +66,22 @@ class BasicChatChannel {
 
   void removeTypingCallback() {
     this._typingCallback = null;
+  }
+
+  void setMediaCallback(Function mediaCallback) {
+    this._mediaCallback = mediaCallback;
+  }
+
+  void removeMediaCallback() {
+    this._mediaCallback = null;
+  }
+
+  void setMessageAddCallback(Function onMessageAdded) {
+    this._onMessageAdded = onMessageAdded;
+  }
+
+  void removeMessageAddCallback() {
+    this._onMessageAdded = null;
   }
 
   void initMethodChannel(UserChatRepository userChatRepository) {
@@ -79,17 +98,23 @@ class BasicChatChannel {
         case MethodChannelChat.generateNewAccessToken:
           generateNewAccessToken();
           break;
+        case MethodChannelChat.addMessageSuccess:
+          _onMessageAdded?.call(call.arguments);
+          break;
         case MethodChannelChat.deleteMessageSuccess:
-          _onMessageDelete?.call(call.arguments);
+          _onMessageDeleted?.call(call.arguments);
           break;
         case MethodChannelChat.updateMessageSuccess:
-          _onMessageUpdate?.call(call.arguments);
+          _onMessageUpdated?.call(call.arguments);
           break;
         case MethodChannelChat.onTypingStarted:
           _typingCallback?.call(call.arguments);
           break;
         case MethodChannelChat.onTypingEnded:
           _typingCallback?.call(call.arguments);
+          break;
+        case MethodChannelChat.getMediaPathComplete:
+          _mediaCallback?.call(call.arguments);
           break;
       }
     });
@@ -117,8 +142,8 @@ class BasicChatChannel {
     _methodChannel?.invokeMethod(MethodChannelChat.removeChannelListener);
   }
 
-  void sendMessage(String message) {
-    _methodChannel?.invokeMethod(MethodChannelChat.sendMessage, message);
+  void sendMessage(SendMessageArgument sendMessageArgument) {
+    _methodChannel?.invokeMethod(MethodChannelChat.sendMessage, sendMessageArgument.toMap());
   }
 
   Future<bool> joinChannel(ConversationModel channelModel) async {
@@ -175,8 +200,8 @@ class BasicChatChannel {
     }
   }
 
-  void sendFile(String filePath) {
-    _methodChannel?.invokeMethod(MethodChannelChat.sendFile, filePath);
+  void sendFile(SendMessageArgument sendMessageArgument) {
+    _methodChannel?.invokeMethod(MethodChannelChat.sendFile, sendMessageArgument.toMap());
   }
 }
 
@@ -202,4 +227,6 @@ class MethodChannelChat {
   static const String onTypingEnded = "onTypingEnded";
   static const String getMessageBefore = "getMessageBefore";
   static const String sendFile = "sendFile";
+  static const String getMediaPathComplete = "getMediaPathComplete";
+  static const String addMessageSuccess = "addMessageSuccess";
 }

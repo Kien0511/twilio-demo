@@ -1,3 +1,5 @@
+import 'package:get/get.dart';
+
 class MessageModel {
   String? sid;
   String? author;
@@ -14,6 +16,10 @@ class MessageModel {
   String? mediaSid;
   String? mediaType;
   int? mediaSize;
+  String? mediaUrl;
+  String? attributes;
+  RxBool sent = RxBool(true);
+  RxInt progress = RxInt(100);
 
   MessageModel.fromJson(Map<String, dynamic> json) {
     sid = json["sid"];
@@ -31,5 +37,6 @@ class MessageModel {
     mediaSid = json["mediaSid"];
     mediaType = json["mediaType"];
     mediaSize = json["mediaSize"];
+    attributes = json["attributes"];
   }
 }

@@ -7,7 +7,7 @@ import 'package:flutter/foundation.dart';
 part 'network_exceptions.freezed.dart';
 
 @freezed
-abstract class NetworkExceptions with _$NetworkExceptions {
+class NetworkExceptions with _$NetworkExceptions {
   const factory NetworkExceptions.unauthorisedRequest() = UnauthorisedRequest;
 
   const factory NetworkExceptions.noInternetConnection() = NoInternetConnection;

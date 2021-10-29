@@ -1,29 +1,32 @@
 package com.example.test_twilio.arguments
 
+import android.util.Log
+import com.example.test_twilio.ChatCallback
+import com.twilio.conversations.Attributes
 import com.twilio.conversations.Message
 import com.twilio.conversations.Participant
 
 class MessageItemArgument(val message: Message, val members: List<Participant>) {
 
     companion object {
-        fun toMapList(list: MutableList<MessageItemArgument>): List<HashMap<String, Any?>> {
+        fun toMapList(list: MutableList<MessageItemArgument>, listener: ChatCallback): List<HashMap<String, Any?>> {
             val listHashMap = mutableListOf<HashMap<String, Any?>>()
             list.let {
                 for (messageItem in it) {
-                    listHashMap.add(messageItem.toMap())
+                    listHashMap.add(messageItem.toMap(listener))
                 }
             }
             return listHashMap
         }
     }
-    fun toMap(): HashMap<String, Any?> {
+    fun toMap(listener: ChatCallback?): HashMap<String, Any?> {
         val hashMap = hashMapOf<String, Any?>()
-        hashMap["message"] = messageMap(message)
+        hashMap["message"] = messageMap(message, listener)
         hashMap["members"] = membersMap(members)
         return hashMap
     }
 
-    private fun messageMap(message: Message) : HashMap<String, Any?> {
+    private fun messageMap(message: Message, listener: ChatCallback?) : HashMap<String, Any?> {
         val hashMap = hashMapOf<String, Any?>()
         hashMap["sid"] = message.sid
         hashMap["author"] = message.author
@@ -41,7 +44,12 @@ class MessageItemArgument(val message: Message, val members: List<Participant>) 
             hashMap["mediaSid"] = message.mediaSid
             hashMap["mediaType"] = message.mediaType
             hashMap["mediaSize"] = message.mediaSize
+            message.getMediaContentTemporaryUrl {
+                Log.e(this@MessageItemArgument.javaClass.simpleName, it)
+                listener?.getMediaPathComplete(MediaFilePathArgument(it, message.sid))
+            }
         }
+        hashMap["attributes"] = message.attributes.toString()
         return hashMap
     }
 

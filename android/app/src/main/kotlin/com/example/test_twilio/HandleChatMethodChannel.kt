@@ -1,9 +1,6 @@
 package com.example.test_twilio
 
-import com.example.test_twilio.arguments.BasicChatClientArgument
-import com.example.test_twilio.arguments.ConversationArgument
-import com.example.test_twilio.arguments.MessageItemArgument
-import com.example.test_twilio.arguments.UpdateMessageArgument
+import com.example.test_twilio.arguments.*
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
 
@@ -47,7 +44,7 @@ class HandleChatMethodChannel: ChatCallback {
                     TwilioApplication.instance.basicClient.removeConversationListener()
                 }
                 MethodChannelChat.sendMessage -> {
-                    TwilioApplication.instance.basicClient.sendMessage(call.arguments as String)
+                    TwilioApplication.instance.basicClient.sendMessage(SendMessageArgument.fromMap(call.arguments as HashMap<String, Any?>))
                 }
                 MethodChannelChat.joinChannel -> {
                     TwilioApplication.instance.basicClient.joinConversation(ConversationArgument.fromMap(call.arguments as HashMap<String, Any>))
@@ -74,7 +71,7 @@ class HandleChatMethodChannel: ChatCallback {
                     TwilioApplication.instance.basicClient.getMessageBefore()
                 }
                 MethodChannelChat.sendFile -> {
-                    TwilioApplication.instance.basicClient.sendFile(call.arguments as String)
+                    TwilioApplication.instance.basicClient.sendFile(SendMessageArgument.fromMap(call.arguments as HashMap<String, Any?>))
                 }
             }
         }
@@ -105,11 +102,11 @@ class HandleChatMethodChannel: ChatCallback {
     }
 
     override fun removeMessageSuccess(messageItemArgument: MessageItemArgument) {
-        methodChannel?.invokeMethod(MethodChannelChat.deleteMessageSuccess, messageItemArgument.toMap())
+        methodChannel?.invokeMethod(MethodChannelChat.deleteMessageSuccess, messageItemArgument.toMap(this))
     }
 
     override fun updateMessageSuccess(messageItemArgument: MessageItemArgument) {
-        methodChannel?.invokeMethod(MethodChannelChat.updateMessageSuccess, messageItemArgument.toMap())
+        methodChannel?.invokeMethod(MethodChannelChat.updateMessageSuccess, messageItemArgument.toMap(this))
     }
 
     override fun createChannelResult(result: Any) {
@@ -125,7 +122,15 @@ class HandleChatMethodChannel: ChatCallback {
     }
 
     override fun loadMoreMessageComplete(list: MutableList<MessageItemArgument>) {
-        flutterResult?.success(MessageItemArgument.toMapList(list))
+        flutterResult?.success(MessageItemArgument.toMapList(list, this))
+    }
+
+    override fun getMediaPathComplete(mediaFilePathArgument: MediaFilePathArgument) {
+        methodChannel?.invokeMethod(MethodChannelChat.getMediaPathComplete, mediaFilePathArgument.toMap())
+    }
+
+    override fun addMessageSuccess(messageItemArgument: MessageItemArgument) {
+        methodChannel?.invokeMethod(MethodChannelChat.addMessageSuccess, messageItemArgument.toMap(this))
     }
 }
 
@@ -152,6 +157,8 @@ class MethodChannelChat {
         const val onTypingEnded = "onTypingEnded"
         const val getMessageBefore = "getMessageBefore"
         const val sendFile = "sendFile"
+        const val getMediaPathComplete = "getMediaPathComplete"
+        const val addMessageSuccess = "addMessageSuccess"
     }
 }
 
@@ -164,8 +171,10 @@ interface ChatCallback {
     fun generateNewAccessToken()
     fun removeMessageSuccess(messageItemArgument: MessageItemArgument)
     fun updateMessageSuccess(messageItemArgument: MessageItemArgument)
+    fun addMessageSuccess(messageItemArgument: MessageItemArgument)
     fun createChannelResult(result: Any)
     fun onTypingStarted(description: String)
     fun onTypingEnded(description: String)
     fun loadMoreMessageComplete(list: MutableList<MessageItemArgument>)
+    fun getMediaPathComplete(mediaFilePathArgument: MediaFilePathArgument)
 }
