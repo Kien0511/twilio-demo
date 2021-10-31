@@ -1,0 +1,191 @@
+{
+  "project_info": {
+    "project_number": "841582580149",
+    "firebase_url": "https://fir-twilio-b435a-default-rtdb.firebaseio.com",
+    "project_id": "fir-twilio-b435a",
+    "storage_bucket": "fir-twilio-b435a.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:841582580149:android:d7fd16ccdc8be3da7749fc",
+        "android_client_info": {
+          "package_name": "com.example.test_twilio"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "841582580149-df400b24o37skc7sqn668j6i1uc71p3h.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.test_twilio",
+            "certificate_hash": "4f5ba059a3a22ff5db09ad9d49a110d7192dd04b"
+          }
+        },
+        {
+          "client_id": "841582580149-k003hlsg0klnt4su56bu6122bshukc2m.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.test_twilio",
+            "certificate_hash": "3d0f35a123d68fda4a54a8a41fbe22fc46ec5fd7"
+          }
+        },
+        {
+          "client_id": "841582580149-hvkfn79uinopdtkbqlu0haf1rioq7nhe.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBow1IXQqAXU7Ha2Ni6MsnH_IV1f6OZnjM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "841582580149-hvkfn79uinopdtkbqlu0haf1rioq7nhe.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:841582580149:android:98f788a2bada40a17749fc",
+        "android_client_info": {
+          "package_name": "com.twilio.chat.demo"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "841582580149-4hj219g4kqaft1ispnup7kbavf7bope2.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.twilio.chat.demo",
+            "certificate_hash": "4f5ba059a3a22ff5db09ad9d49a110d7192dd04b"
+          }
+        },
+        {
+          "client_id": "841582580149-fr2j56f69e6adt92ir920vlver881ek8.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.twilio.chat.demo",
+            "certificate_hash": "3d0f35a123d68fda4a54a8a41fbe22fc46ec5fd7"
+          }
+        },
+        {
+          "client_id": "841582580149-hvkfn79uinopdtkbqlu0haf1rioq7nhe.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBow1IXQqAXU7Ha2Ni6MsnH_IV1f6OZnjM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "841582580149-hvkfn79uinopdtkbqlu0haf1rioq7nhe.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:841582580149:android:04cbc66f32f510407749fc",
+        "android_client_info": {
+          "package_name": "com.twilio.conversations.app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "841582580149-d4cfvcuacsfdnp5sl7crfef1pekkpflu.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.twilio.conversations.app",
+            "certificate_hash": "3d0f35a123d68fda4a54a8a41fbe22fc46ec5fd7"
+          }
+        },
+        {
+          "client_id": "841582580149-htkvgr7jet6bjj1fui6pb9e6tq7a7cnu.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.twilio.conversations.app",
+            "certificate_hash": "4f5ba059a3a22ff5db09ad9d49a110d7192dd04b"
+          }
+        },
+        {
+          "client_id": "841582580149-hvkfn79uinopdtkbqlu0haf1rioq7nhe.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBow1IXQqAXU7Ha2Ni6MsnH_IV1f6OZnjM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "841582580149-hvkfn79uinopdtkbqlu0haf1rioq7nhe.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:841582580149:android:a56eb604a411dc7c7749fc",
+        "android_client_info": {
+          "package_name": "twilio.flutter.programmable_chat_example"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "841582580149-dhiube7sqscc4446sc0ah3484ijto76l.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "twilio.flutter.programmable_chat_example",
+            "certificate_hash": "4f5ba059a3a22ff5db09ad9d49a110d7192dd04b"
+          }
+        },
+        {
+          "client_id": "841582580149-j1r4ddvgkpejdc4et9sse5irjsus6301.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "twilio.flutter.programmable_chat_example",
+            "certificate_hash": "3d0f35a123d68fda4a54a8a41fbe22fc46ec5fd7"
+          }
+        },
+        {
+          "client_id": "841582580149-hvkfn79uinopdtkbqlu0haf1rioq7nhe.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBow1IXQqAXU7Ha2Ni6MsnH_IV1f6OZnjM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "841582580149-hvkfn79uinopdtkbqlu0haf1rioq7nhe.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:get/route_manager.dart';
-import 'package:test_twilio/model/conversation_model.dart';
-import 'package:test_twilio/services/arguments/basic_chat_client_argument.dart';
-import 'package:test_twilio/ui/channel/binding/channel_binding.dart';
-import 'package:test_twilio/ui/channel/channel_screen.dart';
-import 'package:test_twilio/ui/chat/bindings/chat_binding.dart';
+import 'package:test_twilio/data/entity/conversation_data_item.dart';
+import 'package:test_twilio/ui/chat/binding/chat_binding.dart';
 import 'package:test_twilio/ui/chat/chat_screen.dart';
+import 'package:test_twilio/ui/home/binding/home_binding.dart';
+import 'package:test_twilio/ui/home/home_screen.dart';
 import 'package:test_twilio/ui/login/binding/login_binding.dart';
 import 'package:test_twilio/ui/login/login_screen.dart';
 import 'package:test_twilio/ui/splash/bindings/splash_binding.dart';
@@ -17,9 +16,9 @@ import 'package:test_twilio/ui/video_call/video_call_screen.dart';
 class RouteName {
   static const String splash = "/splash";
   static const String login = "/login";
-  static const String channel = "/channel";
-  static const String chat = "/chat";
+  static const String home = "/home";
   static const String videoCall = "/videoCall";
+  static const String chat = "/chat";
 }
 
 /// AppRouter manages routes of app
@@ -37,15 +36,15 @@ class AppRouter {
             page: () => LoginScreen(),
             binding: LoginBinding(),
             settings: settings);
-      case RouteName.channel:
+      case RouteName.home:
         return GetPageRoute(
-            page: () => ChannelScreen(),
-            binding: ChannelBinding(settings.arguments as BasicChatClientArgument),
+            page: () => HomeScreen(),
+            binding: HomeBinding(),
             settings: settings);
       case RouteName.chat:
         return GetPageRoute(
             page: () => ChatScreen(),
-            binding: ChatBinding(settings.arguments as ConversationModel),
+            binding: ChatBinding(settings.arguments as ConversationDataItem),
             settings: settings);
       case RouteName.videoCall:
         return GetPageRoute(

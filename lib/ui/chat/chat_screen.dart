@@ -1,35 +1,33 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/src/widgets/framework.dart';
 import 'package:get/get.dart';
-import 'package:test_twilio/model/message_item_model.dart';
+import 'package:test_twilio/common/extensions/datetime_extensions.dart';
+import 'package:test_twilio/common/extensions/int_extensions.dart';
+import 'package:test_twilio/data/entity/message_data_item.dart';
+import 'package:test_twilio/model/reaction_attribute.dart';
 import 'package:test_twilio/ui/chat/controller/chat_controller.dart';
 import 'package:test_twilio/ui/login/controller/login_controller.dart';
+import 'package:test_twilio/widgets/emoji_text.dart';
+import 'package:test_twilio/widgets/send_status.dart';
 
 class ChatScreen extends GetView<ChatController> {
   @override
   Widget build(BuildContext context) {
-    controller.initController = true;
     return GestureDetector(
       onTap: () {
         FocusScope.of(context).unfocus();
       },
       child: Scaffold(
         appBar: AppBar(
-          title: Text("Chat screen"),
-          actions: [
-            InkWell(
-              onTap: () {
-                controller.inviteByIdentity();
-              },
-              child: Icon(Icons.add, size: 24.0,),
-            ),
-          ],
+          backgroundColor: Colors.blueAccent[700],
+          title: Text(
+            "${controller.conversationDataItem.friendlyName}",
+            style: TextStyle(
+                color: Colors.white, fontSize: 20.0, fontWeight: FontWeight.bold),
+          ),
         ),
         body: Column(
           children: [
             Expanded(child: _buildListMessage()),
-            _buildTypingDescription(),
             _buildInputMessage(),
           ],
         ),
@@ -37,122 +35,203 @@ class ChatScreen extends GetView<ChatController> {
     );
   }
 
-  Widget _buildTypingDescription() {
-    return Obx(() => controller.typingDescription.value.isNotEmpty
-        ? Text(
-            controller.typingDescription.value,
-            style: TextStyle(color: Colors.red),
-          )
-        : SizedBox());
+  Widget _buildInputMessage() {
+    return Container(
+      color: Colors.grey[100],
+      padding: EdgeInsets.all(16.0),
+      child: Row(
+        children: [
+          Icon(Icons.attachment_rounded),
+          SizedBox(width: 16.0,),
+          Expanded(
+              child: TextFormField(
+                controller: controller.messageTextController,
+                style: TextStyle(fontSize: 20),
+                decoration: InputDecoration(
+                  hintText: "New Message",
+                  hintStyle: TextStyle(fontSize: 14),
+                  border: OutlineInputBorder(),
+                  labelText: "New Message",
+                  suffixIcon: InkWell(onTap: () {
+                    controller.sendTextMessage();
+                  },child: Icon(Icons.send)),
+                  filled: true,
+                  fillColor: Colors.white
+                ),
+              ),
+          ),
+        ],
+      ),
+    );
   }
 
   Widget _buildListMessage() {
-    return Obx(() => NotificationListener<ScrollNotification>(
-      onNotification: (ScrollNotification scrollInfo) {
-        if (scrollInfo is ScrollEndNotification) {
-          print("scrollEnd");
-          controller.checkLoadMoreMessage();
-        }
-        return true;
+    return GetBuilder(
+      init: controller,
+      id: "listMessage",
+      builder: (_) {
+        return ListView.separated(
+          shrinkWrap: true,
+          padding: EdgeInsets.all(16.0),
+            reverse: true,
+            itemBuilder: (context, index) {
+              final message = controller.getMessages()[index];
+              if (message.author == author) {
+                return _buildCurrentMessage(message);
+              } else {
+                return _buildItemMessage(message);
+              }
+            },
+            separatorBuilder: (context, index) {
+              return SizedBox(height: 12.0,);
+            },
+            itemCount: controller.getMessages().length);
       },
-      child: ListView.separated(
-        reverse: true,
-        padding: EdgeInsets.symmetric(vertical: 16.0),
-        controller: controller.listMessageController,
-          itemBuilder: (context, index) {
-            final MessageItemModel messageItem = controller.listMessage[index];
-            if (messageItem.message?.author == author) {
-              return _buildCurrentMessage(messageItem);
-            } else {
-              return _buildMessage(messageItem);
-            }
-          },
-          separatorBuilder: (context, indext) {
-            return SizedBox(
-              height: 12.0,
-            );
-          },
-          itemCount: controller.listMessage.length),
-    ));
+    );
   }
 
-  Widget _buildMessage(MessageItemModel messageItem) {
+  Widget _buildItemMessage(MessageDataItem message) {
     return Row(
       children: [
         ConstrainedBox(
           constraints: BoxConstraints(
               maxWidth: 256.0
           ),
-          child: messageItem.message?.hasMedia == true ? _buildMediaMessage(messageItem) : Container(
+          child: message.type == 1? _buildMediaMessage(message) : Container(
               color: Colors.red,
               padding: EdgeInsets.only(left: 8.0, right: 8.0, top: 4.0, bottom: 4.0),
-              child: Text("${messageItem.message?.messageBody}")),
+              child: Text("${message.body}")),
         )
       ],
     );
   }
 
-  Widget _buildCurrentMessage(MessageItemModel messageItem) {
+  Widget _buildCurrentMessage(MessageDataItem message) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.end,
       children: [
         ConstrainedBox(
           constraints: BoxConstraints(
-            maxWidth: 256.0
+              maxWidth: 256.0
           ),
-          child: messageItem.message?.hasMedia == true ? _buildMediaMessage(messageItem) : InkWell(
-            onLongPress: () {
-              controller.showMessageListAction(messageItem);
-            },
-            child: Container(
-                color: Colors.blue,
-                padding: EdgeInsets.only(left: 8.0, right: 8.0, top: 4.0, bottom: 4.0),
-                child: Text("${messageItem.message?.messageBody}", textAlign: TextAlign.right,)),
+          child: message.type == 1? _buildMediaMessage(message) : Stack(
+            alignment: Alignment.bottomRight,
+            children: [
+              Container(
+                margin: EdgeInsets.only(bottom: 16.0),
+                child: InkWell(
+                  onLongPress: () {
+                    controller.showMessageListAction(message);
+                  },
+                  child: Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(8.0),
+                      color: Colors.blue[900],
+                    ),
+                      padding: EdgeInsets.only(top: 12.0, bottom: 12.0, left: 8.0, right: 8.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Text("${message.body}", textAlign: TextAlign.right, style: TextStyle(color: Colors.white),),
+                          SizedBox(height: 8.0,),
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text("${message.dateCreated?.toDateTime().toDateString()}", style: TextStyle(fontSize: 12.0, color: Colors.white),),
+                              SizedBox(width: 8.0,),
+                              SendStatus(message.sendStatus)
+                            ],
+                          )
+                        ],
+                      )),
+                ),
+              ),
+              _buildReaction(message),
+            ],
           ),
         )
       ],
     );
   }
 
-  Widget _buildMediaMessage(MessageItemModel messageItem) {
-    final url = messageItem.message?.mediaUrl;
-    return url?.isNotEmpty == true ? CachedNetworkImage(
-      imageUrl: url!,
-      placeholder: (context, url) => CircularProgressIndicator(),
-      errorWidget: (context, url, error) => Icon(Icons.error),
-    ) : CircularProgressIndicator();
-  }
-
-  Widget _buildInputMessage() {
-    return Row(
+  Widget _buildMediaMessage(MessageDataItem message) {
+    return Stack(
+      alignment: Alignment.bottomRight,
       children: [
-        Expanded(child: TextField(
-          controller: controller.inputTextController,
-          decoration: InputDecoration(
-              border: OutlineInputBorder(
-                  borderSide: BorderSide(color: Colors.teal)),
-              hintText: 'input',
-              suffixStyle: const TextStyle(color: Colors.green)),
-        )),
         Container(
-          height: 40.0,
-          child: InkWell(
-            onTap: () {
-              controller.sendFile();
-            },
-            child: Center(child: Text("send file")),
+          height: 100.0,
+          margin: EdgeInsets.only(bottom: 16.0),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(8.0),
+            color: message.author == author ? Colors.blue[900] : Colors.grey[350]
+          ),
+          padding: EdgeInsets.only(top: 12.0, bottom: 12.0, left: 8.0, right: 8.0),
+          child: Column(
+            children: [
+              Expanded(
+                child: Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(8.0),
+                    color: Colors.white
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 48.0,
+                          child: Icon(Icons.download_rounded)),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              "${message.mediaFileName}",
+                              overflow: TextOverflow.ellipsis,
+                              maxLines: 1,
+                              style: TextStyle(
+                                  fontSize: 16.0, fontWeight: FontWeight.bold),
+                            ),
+                            Text(
+                              "${message.mediaSize?.toFileSize()}",
+                              style: TextStyle(color: Colors.grey[600]),
+                            )
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              SizedBox(height: 8.0,),
+              Row(
+                children: [
+                  Text("${message.dateCreated?.toDateTime().toDateString()}", style: TextStyle(fontSize: 12.0, color: Colors.white),),
+                  SizedBox(width: 8.0,),
+                  SendStatus(message.sendStatus)
+                ],
+              ),
+            ],
           ),
         ),
-        Container(
-          height: 40.0,
-          child: InkWell(
-            onTap: () {
-              controller.sendMessage();
-            },
-            child: Center(child: Text("Send Message")),
-          ),
-        )
+        _buildReaction(message)
       ],
     );
+  }
+
+  Widget _buildReaction(MessageDataItem message) {
+    final reactions = message.toReactionAttribute()?.reactions;
+    return reactions != null ? Container(
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.end,
+        children: [
+          reactions.heart?.isNotEmpty == true ? EmojiText(text: Reaction.reactionHeart, count: reactions.heart?.length) : SizedBox(),
+          reactions.thumbsUp?.isNotEmpty == true ? EmojiText(text: Reaction.reactionThumbsUp, count: reactions.thumbsUp?.length) : SizedBox(),
+          reactions.laugh?.isNotEmpty == true ? EmojiText(text: Reaction.reactionLaugh, count: reactions.laugh?.length) : SizedBox(),
+          reactions.sad?.isNotEmpty == true ? EmojiText(text: Reaction.reactionSad, count: reactions.sad?.length) : SizedBox(),
+          reactions.pouting?.isNotEmpty == true ? EmojiText(text: Reaction.reactionPouting, count: reactions.pouting?.length) : SizedBox(),
+          reactions.thumbsDown?.isNotEmpty == true ? EmojiText(text: Reaction.reactionThumbsDown, count: reactions.thumbsDown?.length) : SizedBox(),
+        ],
+      ),
+    ) : SizedBox();
   }
 }

@@ -1,10 +1,9 @@
-import 'package:test_twilio/model/access_token_response.dart';
 import 'package:test_twilio/network/api_result.dart';
 import 'package:test_twilio/network/app_client.dart';
 import 'package:test_twilio/network/network_exceptions.dart';
 
 abstract class IUserChatRepository {
-  Future<ApiResult<AccessTokenResponse>> getAccessToken(String identity, {int ttl = 3600});
+  Future<ApiResult<String>> getAccessToken(String identity, String password);
 }
 
 class UserChatRepository extends IUserChatRepository {
@@ -13,15 +12,15 @@ class UserChatRepository extends IUserChatRepository {
   UserChatRepository(this._appClient);
 
   @override
-  Future<ApiResult<AccessTokenResponse>> getAccessToken(String identity, {int ttl = 3600}) async {
+  Future<ApiResult<String>> getAccessToken(String identity, String password) async {
     try {
       final data = {
         "identity" : identity,
-        "ttl": ttl,
+        "password": password,
       };
-      final response = await _appClient.get("/token.php", queryParam: data);
+      final response = await _appClient.get("/token-service", queryParam: data);
       print("AccessTokenResponse: $response");
-      return ApiResult.success(data: AccessTokenResponse.fromJson(response));
+      return ApiResult.success(data: response);
     } catch (e) {
       return ApiResult.failure(error: NetworkExceptions.getDioException(e));
     }

@@ -9,7 +9,7 @@ import Foundation
 
 class HandleChatMethodChannel {
     static let instance = HandleChatMethodChannel()
-    let chatChannel = "com.example.demo_twilio/chatChannel"
+    let chatChannel = "com.example.demo_twilio/conversationChannel"
     var methodChannel: FlutterMethodChannel?
     var flutterResult: FlutterResult?
     

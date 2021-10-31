@@ -1,10 +1,10 @@
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
-import 'package:test_twilio/model/access_token_response.dart';
 import 'package:test_twilio/network/api_result.dart';
 import 'package:test_twilio/repository/user_chat_repository.dart';
 import 'package:test_twilio/routes/router.dart';
-import 'package:test_twilio/services/arguments/basic_chat_client_argument.dart';
+import 'package:test_twilio/services/basic_conversation_channel.dart';
 
 String author = "";
 
@@ -13,17 +13,29 @@ class LoginController extends GetxController {
 
   LoginController(this._userChatRepository);
 
-  TextEditingController loginTextController = TextEditingController();
+  TextEditingController identityTextController = TextEditingController();
+  TextEditingController passwordTextController = TextEditingController();
 
   Future<void> login() async {
-    if (loginTextController.text.trim().isEmpty) {
-      return;
-    }
-    final ApiResult<AccessTokenResponse> apiResult = await _userChatRepository.getAccessToken(loginTextController.text.trim().toString());
-    apiResult.when(success: (AccessTokenResponse data) async {
+    final identity = identityTextController.text.trim().toString();
+    final password = passwordTextController.text.trim().toString();
+    final ApiResult<String> apiResult = await _userChatRepository.getAccessToken(identity, password);
+    apiResult.when(success: (String data) async {
       print("success");
-      author = loginTextController.text.trim().toString();
-      Get.toNamed(RouteName.channel, arguments: BasicChatClientArgument(data.token!, "firebaseToken"));
+      author = identity;
+      final result = await BasicConversationsChannel().createConversationsClient(data);
+      if (result is bool) {
+        print("create success");
+        FirebaseMessaging.instance.getToken().then((value) {
+          print("fcmToken: $value");
+          if (value != null) {
+            BasicConversationsChannel().setFirebaseToken(value);
+          }
+        });
+        Get.toNamed(RouteName.home);
+      } else {
+        print("create failed");
+      }
     }, failure: (error) {
       print("error");
     });

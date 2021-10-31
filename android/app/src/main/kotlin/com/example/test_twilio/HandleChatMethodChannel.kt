@@ -1,12 +1,16 @@
 package com.example.test_twilio
 
-import com.example.test_twilio.arguments.*
+import ConversationDataItem
+import MessageDataItem
+import com.example.test_twilio.common.extensions.toMap
+import com.example.test_twilio.message.BasicConversationsClient
+import com.twilio.conversations.ErrorInfo
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
 
 @Suppress("UNCHECKED_CAST")
-class HandleChatMethodChannel: ChatCallback {
-    private val chatChannel = "com.example.demo_twilio/chatChannel"
+class HandleChatMethodChannel: HandleMethodChatListener {
+    private val chatChannel = "com.example.demo_twilio/conversationChannel"
     private var flutterResult: MethodChannel.Result? = null
     private var methodChannel: MethodChannel? = null
 
@@ -27,154 +31,141 @@ class HandleChatMethodChannel: ChatCallback {
                 call, result ->
             flutterResult = result
             when (call.method) {
-                MethodChannelChat.initBasicChatClient -> {
-                    val basicChatClientArgument = BasicChatClientArgument.fromMap(call.arguments as HashMap<String, Any>)
-                    TwilioApplication.instance.basicClient.setMainActivityCallback(this)
-                    // Todo: change firebase token null to basicChatClientArgument.firebaseToken
-                    TwilioApplication.instance.basicClient.createClient(basicChatClientArgument.accessToken, null)
+                MethodChannelConversation.createConversationsClient -> {
+                    BasicConversationsClient.getInstance().create(call.arguments as String)
+                    BasicConversationsClient.getInstance().setMethodChatListener(this)
                 }
-                MethodChannelChat.getChannels -> {
-                    TwilioApplication.instance.basicClient.clearChannel()
-                    TwilioApplication.instance.basicClient.getListConversation()
+                MethodChannelConversation.setFirebaseToken -> {
+                    BasicConversationsClient.getInstance().setFirebaseToken(call.arguments as String)
                 }
-                MethodChannelChat.getMessages -> {
-                    TwilioApplication.instance.basicClient.getMessages(ConversationArgument.fromMap(call.arguments as HashMap<String, Any>))
+                MethodChannelConversation.getConversations -> {
+                    BasicConversationsClient.getInstance().getConversations()
                 }
-                MethodChannelChat.removeChannelListener -> {
-                    TwilioApplication.instance.basicClient.removeConversationListener()
+                MethodChannelConversation.fetchMessages -> {
+                    BasicConversationsClient.getInstance().fetchMessages(call.arguments as String, count = 10)
                 }
-                MethodChannelChat.sendMessage -> {
-                    TwilioApplication.instance.basicClient.sendMessage(SendMessageArgument.fromMap(call.arguments as HashMap<String, Any?>))
+                MethodChannelConversation.getMessages -> {
+                    BasicConversationsClient.getInstance().fetchMessages(call.arguments as String, count = 50)
                 }
-                MethodChannelChat.joinChannel -> {
-                    TwilioApplication.instance.basicClient.joinConversation(ConversationArgument.fromMap(call.arguments as HashMap<String, Any>))
+                MethodChannelConversation.sendTextMessage -> {
+                    BasicConversationsClient.getInstance().sendTextMessage(MessageDataItem.fromMap(call.arguments as HashMap<String, Any?>))
                 }
-                MethodChannelChat.generateNewAccessSuccess -> {
-                    TwilioApplication.instance.basicClient.updateAccessToken(call.arguments as String)
-                }
-                MethodChannelChat.deleteMessage -> {
-                    TwilioApplication.instance.basicClient.deleteMessage(call.arguments as String)
-                }
-                MethodChannelChat.updateMessage -> {
-                    TwilioApplication.instance.basicClient.updateMessage(UpdateMessageArgument.fromMap(call.arguments as HashMap<String, Any>))
-                }
-                MethodChannelChat.createChannel -> {
-                    TwilioApplication.instance.basicClient.createConversation(call.arguments as String)
-                }
-                MethodChannelChat.inviteByIdentity -> {
-                    TwilioApplication.instance.basicClient.inviteByIdentity(call.arguments as String)
-                }
-                MethodChannelChat.typing -> {
-                    TwilioApplication.instance.basicClient.typing()
-                }
-                MethodChannelChat.getMessageBefore -> {
-                    TwilioApplication.instance.basicClient.getMessageBefore()
-                }
-                MethodChannelChat.sendFile -> {
-                    TwilioApplication.instance.basicClient.sendFile(SendMessageArgument.fromMap(call.arguments as HashMap<String, Any?>))
+                MethodChannelConversation.removeMessage -> {
+                    BasicConversationsClient.getInstance().removeMessage(MessageDataItem.fromMap(call.arguments as HashMap<String, Any?>))
                 }
             }
         }
     }
 
-    override fun onCreateBasicChatClientComplete() {
+    override fun createConversationsClientSuccess() {
         flutterResult?.success(true)
     }
 
-    override fun refreshChannelList() {
-        methodChannel?.invokeMethod(MethodChannelChat.refreshChannelList, TwilioApplication.instance.basicClient.getConservations())
+    override fun createConversationsClientError(errorInfo: ErrorInfo) {
+        flutterResult?.success(errorInfo.toMap())
     }
 
-    override fun refreshMessagesList() {
-        methodChannel?.invokeMethod(MethodChannelChat.refreshMessagesList, TwilioApplication.instance.basicClient.getMessageItemList())
+    override fun insertConversation(conversationDataItem: ConversationDataItem) {
+        methodChannel?.invokeMethod(MethodChannelConversation.insertConversation, conversationDataItem.toMap())
     }
 
-    override fun joinChannelSuccess() {
+    override fun updateConversation(conversationDataItem: ConversationDataItem) {
+        methodChannel?.invokeMethod(MethodChannelConversation.updateConversation, conversationDataItem.toMap())
+    }
+
+    override fun updateParticipantCount(conversationDataItem: ConversationDataItem) {
+        methodChannel?.invokeMethod(MethodChannelConversation.updateParticipantCount, conversationDataItem.toMap())
+    }
+
+    override fun updateMessageCount(conversationDataItem: ConversationDataItem) {
+        methodChannel?.invokeMethod(MethodChannelConversation.updateMessageCount, conversationDataItem.toMap())
+    }
+
+    override fun updateUnreadMessagesCount(conversationDataItem: ConversationDataItem) {
+        methodChannel?.invokeMethod(MethodChannelConversation.updateUnreadMessagesCount, conversationDataItem.toMap())
+    }
+
+    override fun updateConversationLastMessage(conversationSid: String) {
+        methodChannel?.invokeMethod(MethodChannelConversation.updateConversationLastMessage, conversationSid)
+    }
+
+    override fun getConversationsComplete(conversations: List<ConversationDataItem>?) {
+        flutterResult?.success(conversations?.toMap())
+    }
+
+    override fun deleteGoneUserConversations(conversations: List<ConversationDataItem>?) {
+        methodChannel?.invokeMethod(MethodChannelConversation.deleteGoneUserConversations, conversations?.toMap())
+    }
+
+    override fun insertListMessage(listMessageDataItem: List<MessageDataItem>) {
+        flutterResult?.success(listMessageDataItem.toMap())
+    }
+
+    override fun insertMessage(message: MessageDataItem) {
+        methodChannel?.invokeMethod(MethodChannelConversation.insertMessage, message.toMap())
+    }
+
+    override fun updateMessageByUuid(message: MessageDataItem) {
+        methodChannel?.invokeMethod(MethodChannelConversation.updateMessageByUuid, message.toMap())
+    }
+
+    override fun deleteMessage(message: MessageDataItem) {
+        methodChannel?.invokeMethod(MethodChannelConversation.deleteMessage, message.toMap())
+    }
+
+    override fun removeMessageSuccess() {
         flutterResult?.success(true)
     }
 
-    override fun joinChannelError() {
+    override fun removeMessageFailed() {
         flutterResult?.success(false)
     }
 
-    override fun generateNewAccessToken() {
-        methodChannel?.invokeMethod(MethodChannelChat.generateNewAccessToken, null)
-    }
-
-    override fun removeMessageSuccess(messageItemArgument: MessageItemArgument) {
-        methodChannel?.invokeMethod(MethodChannelChat.deleteMessageSuccess, messageItemArgument.toMap(this))
-    }
-
-    override fun updateMessageSuccess(messageItemArgument: MessageItemArgument) {
-        methodChannel?.invokeMethod(MethodChannelChat.updateMessageSuccess, messageItemArgument.toMap(this))
-    }
-
-    override fun createChannelResult(result: Any) {
-        flutterResult?.success(result)
-    }
-
-    override fun onTypingStarted(description: String) {
-        methodChannel?.invokeMethod(MethodChannelChat.onTypingStarted, description)
-    }
-
-    override fun onTypingEnded(description: String) {
-        methodChannel?.invokeMethod(MethodChannelChat.onTypingEnded, description)
-    }
-
-    override fun loadMoreMessageComplete(list: MutableList<MessageItemArgument>) {
-        flutterResult?.success(MessageItemArgument.toMapList(list, this))
-    }
-
-    override fun getMediaPathComplete(mediaFilePathArgument: MediaFilePathArgument) {
-        methodChannel?.invokeMethod(MethodChannelChat.getMediaPathComplete, mediaFilePathArgument.toMap())
-    }
-
-    override fun addMessageSuccess(messageItemArgument: MessageItemArgument) {
-        methodChannel?.invokeMethod(MethodChannelChat.addMessageSuccess, messageItemArgument.toMap(this))
+    override fun updateMessage(message: MessageDataItem) {
+        methodChannel?.invokeMethod(MethodChannelConversation.updateMessage, message.toMap())
     }
 }
 
-class MethodChannelChat {
+class MethodChannelConversation {
     companion object {
-        const val initBasicChatClient = "initBasicChatClient"
-        const val refreshChannelList = "refreshChannelList"
-        const val getChannels = "getChannels"
+        const val createConversationsClient = "createConversationsClient"
+        const val insertConversation = "insertConversation"
+        const val updateConversation = "updateConversation"
+        const val updateParticipantCount = "updateParticipantCount"
+        const val updateMessageCount = "updateMessageCount"
+        const val updateUnreadMessagesCount = "updateUnreadMessagesCount"
+        const val updateConversationLastMessage = "updateConversationLastMessage"
+        const val deleteGoneUserConversations = "deleteGoneUserConversations"
+
+        const val setFirebaseToken = "setFirebaseToken"
+        const val getConversations = "getConversations"
+        const val fetchMessages = "fetchMessages"
         const val getMessages = "getMessages"
-        const val refreshMessagesList = "refreshMessagesList"
-        const val removeChannelListener = "removeChannelListener"
-        const val sendMessage = "sendMessage"
-        const val joinChannel = "joinChannel"
-        const val generateNewAccessToken = "generateNewAccessToken"
-        const val generateNewAccessSuccess = "generateNewAccessSuccess"
+        const val sendTextMessage = "sendTextMessage"
+        const val insertMessage = "insertMessage"
+        const val updateMessageByUuid = "updateMessageByUuid"
         const val deleteMessage = "deleteMessage"
-        const val deleteMessageSuccess = "deleteMessageSuccess"
+        const val removeMessage = "removeMessage"
         const val updateMessage = "updateMessage"
-        const val updateMessageSuccess = "updateMessageSuccess"
-        const val createChannel = "createChannel"
-        const val inviteByIdentity = "inviteByIdentity"
-        const val typing = "typing"
-        const val onTypingStarted = "onTypingStarted"
-        const val onTypingEnded = "onTypingEnded"
-        const val getMessageBefore = "getMessageBefore"
-        const val sendFile = "sendFile"
-        const val getMediaPathComplete = "getMediaPathComplete"
-        const val addMessageSuccess = "addMessageSuccess"
     }
 }
 
-interface ChatCallback {
-    fun onCreateBasicChatClientComplete()
-    fun refreshChannelList()
-    fun refreshMessagesList()
-    fun joinChannelSuccess()
-    fun joinChannelError()
-    fun generateNewAccessToken()
-    fun removeMessageSuccess(messageItemArgument: MessageItemArgument)
-    fun updateMessageSuccess(messageItemArgument: MessageItemArgument)
-    fun addMessageSuccess(messageItemArgument: MessageItemArgument)
-    fun createChannelResult(result: Any)
-    fun onTypingStarted(description: String)
-    fun onTypingEnded(description: String)
-    fun loadMoreMessageComplete(list: MutableList<MessageItemArgument>)
-    fun getMediaPathComplete(mediaFilePathArgument: MediaFilePathArgument)
+interface HandleMethodChatListener {
+    fun createConversationsClientSuccess()
+    fun createConversationsClientError(errorInfo: ErrorInfo)
+    fun insertConversation(conversationDataItem: ConversationDataItem)
+    fun updateConversation(conversationDataItem: ConversationDataItem)
+    fun updateParticipantCount(conversationDataItem: ConversationDataItem)
+    fun updateMessageCount(conversationDataItem: ConversationDataItem)
+    fun updateUnreadMessagesCount(conversationDataItem: ConversationDataItem)
+    fun updateConversationLastMessage(conversationSid: String)
+    fun getConversationsComplete(conversations: List<ConversationDataItem>?)
+    fun deleteGoneUserConversations(conversations: List<ConversationDataItem>?)
+    fun insertListMessage(listMessageDataItem: List<MessageDataItem>)
+    fun insertMessage(message: MessageDataItem)
+    fun updateMessageByUuid(message: MessageDataItem)
+    fun deleteMessage(message: MessageDataItem)
+    fun removeMessageSuccess()
+    fun removeMessageFailed()
+    fun updateMessage(message: MessageDataItem)
 }

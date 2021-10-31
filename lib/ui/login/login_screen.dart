@@ -16,7 +16,13 @@ class LoginScreen extends GetView<LoginController> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             TextField(
-              controller: controller.loginTextController,
+              controller: controller.identityTextController,
+            ),
+            SizedBox(
+              height: 24.0,
+            ),
+            TextField(
+              controller: controller.passwordTextController,
             ),
             SizedBox(
               height: 24.0,

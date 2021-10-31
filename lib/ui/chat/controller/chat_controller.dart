@@ -1,209 +1,84 @@
-import 'dart:async';
-import 'dart:io';
-
 import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
-import 'package:image_picker/image_picker.dart';
-import 'package:permission_handler/permission_handler.dart';
-import 'package:test_twilio/model/conversation_model.dart';
-import 'package:test_twilio/model/media_file_path_model.dart';
-import 'package:test_twilio/model/message_item_model.dart';
-import 'package:test_twilio/services/arguments/send_message_argument.dart';
-import 'package:test_twilio/services/basic_chat_channel.dart';
-import 'package:test_twilio/widgets/custom_input_text_field.dart';
+import 'package:test_twilio/data/database_helper.dart';
+import 'package:test_twilio/data/entity/conversation_data_item.dart';
+import 'package:test_twilio/data/entity/message_data_item.dart';
+import 'package:test_twilio/services/basic_conversation_channel.dart';
 import 'package:test_twilio/widgets/message_list_action.dart';
-import 'package:test_twilio/widgets/send_file_list_action.dart';
-import 'package:test_twilio/common/extensions/iterable_extension.dart';
 import 'package:uuid/uuid.dart';
 
 class ChatController extends GetxController {
-  final ConversationModel channelModel;
+  final ConversationDataItem conversationDataItem;
 
-  ChatController(this.channelModel);
+  TextEditingController messageTextController = TextEditingController();
 
-  bool initController = false;
-
-  RxList<MessageItemModel> listMessage = RxList([]);
-
-  TextEditingController inputTextController = TextEditingController();
-
-  ScrollController listMessageController = ScrollController();
-
-  RxString typingDescription = RxString("");
-
-  bool _inProgressGetMessage = false;
+  ChatController(this.conversationDataItem);
 
   @override
   void onInit() {
     super.onInit();
     Future.delayed(Duration(milliseconds: 100)).then((_) {
-      setRefreshMessagesListCallback();
-      setMessageAddCallback();
-      setMessageDeleteCallback();
-      setMessageUpdateCallback();
-      setTypingCallback();
-      typing();
-      setMediaCallback();
-      BasicChatChannel().getMessages(channelModel);
+      BasicConversationsChannel().setOnUpdateListMessage(() {
+        update(["listMessage"]);
+      });
+      loadMessages();
     });
   }
 
-  void typing() {
-    inputTextController.addListener(() {
-      BasicChatChannel().typing();
-    });
-  }
-
-  void setTypingCallback() {
-    BasicChatChannel().setTypingCallback((String data) {
-      typingDescription.value = data;
-    });
-  }
-
-  void setMediaCallback() {
-    BasicChatChannel().setMediaCallback((mediaFile) {
-      if (mediaFile is Map) {
-        final media = MediaFilePathModel.fromJson(Map<String, dynamic>.from(mediaFile));
-        final index = listMessage.indexWhere((element) =>
-        element.message?.sid == media.messageSid);
-        final newItem = listMessage[index];
-        newItem.message?.mediaUrl = media.url;
-        listMessage.removeAt(index);
-        listMessage.insert(index, newItem);
+  Future<void> loadMessages() async {
+    final localMessage = await DatabaseHelper().messagesDao?.getMessagesSorted(conversationDataItem.sid!);
+    final messages = await BasicConversationsChannel().getMessages(conversationDataItem.sid!);
+    final Map<String, MessageDataItem> localDataMap = Map.fromIterable(localMessage ?? [], key: (e) {
+      if (e.sid?.isNotEmpty == true) {
+        return e.sid!;
+      } else {
+        return e.uuid!;
       }
-    });
-  }
-
-  void setRefreshMessagesListCallback() {
-    BasicChatChannel().setRefreshMessagesListCallback((data) async {
-      if (data is List) {
-        final List<MessageItemModel> listMessage = [];
-        await Future.forEach(data, (element) {
-          if (element is Map) {
-            listMessage.add(MessageItemModel.fromJson(Map<String, dynamic>.from(element)));
-          }
-        });
-        this.listMessage.clear();
-        this.listMessage.addAll(listMessage.reversed);
+    }, value: (e) => e);
+    getMessages().clear();
+    for (MessageDataItem message in messages) {
+      final isExists = localDataMap[message.sid] != null || localDataMap[message.uuid] != null;
+      if (isExists) {
+        localDataMap.remove(message.sid);
+        localDataMap.remove(message.uuid);
       }
-      print(data);
-    });
-  }
-
-  void setMessageAddCallback() {
-    BasicChatChannel().setMessageAddCallback((data) {
-      final messageItem = MessageItemModel.fromJson(Map<String, dynamic>.from(data as Map));
-      this.listMessage.insert(0, messageItem);
-    });
-  }
-
-  void setMessageDeleteCallback() {
-    BasicChatChannel().setMessageDeleteCallback((data) {
-      final messageItem = MessageItemModel.fromJson(Map<String, dynamic>.from(data as Map));
-      this.listMessage.removeWhere((element) => element.message?.sid == messageItem.message!.sid);
-    });
-  }
-  
-  void setMessageUpdateCallback() {
-    BasicChatChannel().setMessageUpdateCallback((data) {
-      final messageItem = MessageItemModel.fromJson(Map<String, dynamic>.from(data as Map));
-      final index = this.listMessage.indexWhere((element) => element.message!.sid == messageItem.message!.sid);
-      if (index != -1) {
-        this.listMessage.removeAt(index);
-        this.listMessage.insert(index, messageItem);
-      }
-    });
-  }
-
-  @override
-  void onClose() {
-    BasicChatChannel().removeChannelListener();
-    super.onClose();
-  }
-
-  void sendMessage() {
-    if (inputTextController.text.trim().toString().isNotEmpty) {
-      BasicChatChannel().sendMessage(SendMessageArgument(inputTextController.text.trim().toString(), Uuid().v4()));
-      inputTextController.text = "";
     }
+    getMessages().addAll(messages.reversed);
+    getMessages().addAll(localDataMap.values.toList().reversed);
+    print(getMessages());
+    update(["listMessage"]);
   }
 
-  void showMessageListAction(MessageItemModel messageItem) {
-    Get.bottomSheet(MessageListAction(onUpdateMessage: () {
-      Get.dialog(CustomInputTextField(message: messageItem.message!.messageBody!, onUpdate: (messageBody) {
-        Get.back();
-        BasicChatChannel().updateMessage(messageItem.message!.sid!, messageBody);
-      },));
-    }, onDeleteMessage: () {
-      BasicChatChannel().deleteMessage(messageItem.message!.sid!);
-    },));
-  }
-
-  void inviteByIdentity() {
-    Get.dialog(CustomInputTextField(message: "user identity", onUpdate: (userIdentity) {
-      Get.back();
-      BasicChatChannel().inviteByIdentity(userIdentity);
-    }));
-  }
-
-  Future<void> getMessageBefore() async {
-    if (_inProgressGetMessage) {
+  Future<void> sendTextMessage() async {
+    if (messageTextController.text.trim().isEmpty) {
       return;
     }
-    print("start get message before");
-    _inProgressGetMessage = true;
-    final data = await BasicChatChannel().getMessageBefore();
-    _inProgressGetMessage = false;
-    if (data is List) {
-      final List<MessageItemModel> listMessage = [];
-      await Future.forEach(data, (element) {
-        if (element is Map) {
-          listMessage.add(MessageItemModel.fromJson(Map<String, dynamic>.from(element)));
-        }
-      });
-      this.listMessage.addAll(listMessage.reversed);
-    }
-    print(data);
+    final map = {
+      "conversationSid": conversationDataItem.sid,
+      "body": messageTextController.text.trim().toString(),
+      "uuid": Uuid().v4()
+    };
+    MessageDataItem messageDataItem = MessageDataItem.fromMap(map);
+    BasicConversationsChannel().sendTextMessage(messageDataItem);
+    messageTextController.text = "";
   }
 
-  void checkLoadMoreMessage() {
-    if (listMessageController.offset >= listMessageController.position.maxScrollExtent - 100.0) {
-      getMessageBefore();
-    }
+  List<MessageDataItem> getMessages() {
+    return BasicConversationsChannel().messages;
   }
 
-  void sendFile() async {
-    if (Platform.isAndroid) {
-      if (await Permission.storage.request().isGranted) {
-        _sendFileListAction();
-      }
-    } else {
-      if (await Permission.photos.request().isGranted || await Permission.photos.request().isLimited) {
-        _sendFileListAction();
-      }
-    }
+  void showMessageListAction(MessageDataItem message) {
+    Get.bottomSheet(MessageListAction(
+      onUpdateMessage: () {
 
-  }
-
-  void _sendFileListAction() {
-    final ImagePicker imagePicker = ImagePicker();
-    Get.bottomSheet(SendFileListAction(
-      sendImageGallery: () async {
-        final XFile? image = await imagePicker.pickImage(source: ImageSource.gallery);
-        if (image != null) {
-          BasicChatChannel().sendFile(SendMessageArgument(image.path, Uuid().v4()));
+      },
+      onDeleteMessage: () async {
+        final result = await BasicConversationsChannel().removeMessage(message);
+        if (result) {
+          print("Delete success");
         } else {
-          print("image picker error");
+          print("Delete failed");
         }
-      },
-      sendImageCamera: () {
-
-      },
-      sendVideoGallery: () {
-
-      },
-      sendVideoCamera: () {
-
       },
     ));
   }

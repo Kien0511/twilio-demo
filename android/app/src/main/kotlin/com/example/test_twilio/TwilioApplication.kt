@@ -7,13 +7,10 @@ import android.view.Gravity
 import android.widget.Toast
 
 class TwilioApplication : Application() {
-    lateinit var basicClient: BasicChatClient
-        private set
 
     override fun onCreate() {
         super.onCreate()
         instance = this
-        basicClient = BasicChatClient(applicationContext)
     }
 
     @JvmOverloads fun showToast(text: String, duration: Int = Toast.LENGTH_SHORT) {

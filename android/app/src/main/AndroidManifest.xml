@@ -11,6 +11,7 @@
         android:label="test_twilio"
         android:icon="@mipmap/ic_launcher"
        android:name=".TwilioApplication"
+       android:usesCleartextTraffic="true"
        >
         <activity
             android:name=".MainActivity"

@@ -7,8 +7,8 @@ typealias SuccessStatus = () -> Unit
 typealias SuccessCallback<T> = (T) -> Unit
 typealias ErrorCallback = (error: ErrorInfo) -> Unit
 
-class ChatCallbackListener<T>(val fail: ErrorCallback = {},
-                              val success: SuccessCallback<T> = {}) : CallbackListener<T> {
+class ConversationsCallbackListener<T>(val fail: ErrorCallback = {},
+                                       val success: SuccessCallback<T> = {}) : CallbackListener<T> {
 
     override fun onSuccess(p0: T) = success(p0)
 
@@ -17,8 +17,8 @@ class ChatCallbackListener<T>(val fail: ErrorCallback = {},
     }
 }
 
-open class ChatStatusListener(val fail: ErrorCallback = {},
-                              val success: SuccessStatus = {}) : StatusListener {
+open class ConversationsStatusListener(val fail: ErrorCallback = {},
+                                       val success: SuccessStatus = {}) : StatusListener {
 
     override fun onSuccess() = success()
 
@@ -32,7 +32,7 @@ open class ChatStatusListener(val fail: ErrorCallback = {},
  * Status listener that shows a toast with operation results.
  */
 class ToastStatusListener(val okText: String, val errorText: String, fail: ErrorCallback = {},
-                          success: SuccessStatus = {}) : ChatStatusListener(fail, success) {
+                          success: SuccessStatus = {}) : ConversationsStatusListener(fail, success) {
 
     override fun onSuccess() {
         TwilioApplication.instance.showToast(okText)
