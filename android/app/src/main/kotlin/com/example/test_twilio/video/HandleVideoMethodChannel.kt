@@ -1,10 +1,11 @@
 package com.example.test_twilio.video
 
+import com.example.test_twilio.video.view.VideoCallViewFactory
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
 
 class HandleVideoMethodChannel {
-    private val chatChannel = "com.example.demo_twilio/videoChannel"
+    private val videoCallChannel = "com.example.demo_twilio/videoCallChannel"
     private var flutterResult: MethodChannel.Result? = null
     private var methodChannel: MethodChannel? = null
 
@@ -19,12 +20,15 @@ class HandleVideoMethodChannel {
     }
 
     fun handle(flutterEngine: FlutterEngine) {
-        methodChannel = MethodChannel(flutterEngine.dartExecutor.binaryMessenger, chatChannel)
+        methodChannel = MethodChannel(flutterEngine.dartExecutor.binaryMessenger, videoCallChannel)
         methodChannel?.setMethodCallHandler { call, result ->
             flutterResult = result
             when (call.method) {
-                MethodChannelVideo.initVideo -> {
-
+                MethodChannelVideo.connectToRoom -> {
+                    VideoCallViewFactory.getInstance().connectToRoom(call.arguments as String)
+                }
+                MethodChannelVideo.disconnect -> {
+                    VideoCallViewFactory.getInstance().disconnect()
                 }
             }
         }
@@ -33,6 +37,7 @@ class HandleVideoMethodChannel {
 
 class MethodChannelVideo {
     companion object {
-        const val initVideo = "initVideo"
+        const val connectToRoom = "connectToRoom"
+        const val disconnect = "disconnect"
     }
 }

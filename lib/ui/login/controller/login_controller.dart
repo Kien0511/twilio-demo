@@ -7,14 +7,15 @@ import 'package:test_twilio/routes/router.dart';
 import 'package:test_twilio/services/basic_conversation_channel.dart';
 
 String author = "";
+String accessToken = "";
 
 class LoginController extends GetxController {
   final UserChatRepository _userChatRepository;
 
   LoginController(this._userChatRepository);
 
-  TextEditingController identityTextController = TextEditingController();
-  TextEditingController passwordTextController = TextEditingController();
+  TextEditingController identityTextController = TextEditingController(text: "user00");
+  TextEditingController passwordTextController = TextEditingController(text: "password00");
 
   Future<void> login() async {
     final identity = identityTextController.text.trim().toString();
@@ -23,6 +24,7 @@ class LoginController extends GetxController {
     apiResult.when(success: (String data) async {
       print("success");
       author = identity;
+      accessToken = data;
       final result = await BasicConversationsChannel().createConversationsClient(data);
       if (result is bool) {
         print("create success");

@@ -24,6 +24,17 @@ class ChatScreen extends GetView<ChatController> {
             style: TextStyle(
                 color: Colors.white, fontSize: 20.0, fontWeight: FontWeight.bold),
           ),
+          actions: [
+            InkWell(
+              onTap: () {
+                controller.videoCall();
+              },
+              child: Container(
+                  padding: EdgeInsets.symmetric(horizontal: 16.0),
+                  child: Icon(Icons.call),
+              ),
+            ),
+          ],
         ),
         body: Column(
           children: [

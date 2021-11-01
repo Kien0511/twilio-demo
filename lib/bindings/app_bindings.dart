@@ -4,6 +4,7 @@ import 'package:test_twilio/bindings/network_dependencies.dart';
 import 'package:test_twilio/bindings/repository_dependencies.dart';
 import 'package:test_twilio/data/database_helper.dart';
 import 'package:test_twilio/services/basic_conversation_channel.dart';
+import 'package:test_twilio/services/basic_video_channel.dart';
 
 /// AppBindings
 class AppBindings extends Bindings {
@@ -14,5 +15,6 @@ class AppBindings extends Bindings {
     injectRepositories();
     injectControllers();
     BasicConversationsChannel().initMethodChannel(Get.find());
+    BasicVideoChannel().initMethodChannel();
   }
 }

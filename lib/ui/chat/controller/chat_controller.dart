@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:test_twilio/data/database_helper.dart';
 import 'package:test_twilio/data/entity/conversation_data_item.dart';
 import 'package:test_twilio/data/entity/message_data_item.dart';
+import 'package:test_twilio/routes/router.dart';
 import 'package:test_twilio/services/basic_conversation_channel.dart';
 import 'package:test_twilio/widgets/message_list_action.dart';
 import 'package:uuid/uuid.dart';
@@ -81,5 +82,9 @@ class ChatController extends GetxController {
         }
       },
     ));
+  }
+
+  void videoCall() {
+    Get.toNamed(RouteName.videoCall);
   }
 }
