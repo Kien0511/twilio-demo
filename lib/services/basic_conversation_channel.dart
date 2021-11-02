@@ -1,8 +1,4 @@
 import 'package:flutter/services.dart';
-import 'package:get/get.dart';
-import 'package:test_twilio/data/dao/conversations_dao.dart';
-import 'package:test_twilio/data/dao/messages_dao.dart';
-import 'package:test_twilio/data/dao/participants_dao.dart';
 import 'package:test_twilio/data/database_helper.dart';
 import 'package:test_twilio/data/entity/conversation_data_item.dart';
 import 'package:test_twilio/data/entity/message_data_item.dart';
@@ -78,6 +74,12 @@ class BasicConversationsChannel {
           break;
         case MethodChannelConversation.updateMessage:
           _updateMessage(MessageDataItem.fromMap(Map<String, dynamic>.from(call.arguments as Map)));
+          break;
+        case MethodChannelConversation.updateMessage:
+          _updateMessageStatus(MessageDataItem.fromMap(Map<String, dynamic>.from(call.arguments as Map)));
+          break;
+        case MethodChannelConversation.updateMessageMediaUploadStatus:
+          _updateMessageMediaUploadStatus(MessageDataItem.fromMap(Map<String, dynamic>.from(call.arguments as Map)));
           break;
       }
     });
@@ -257,16 +259,22 @@ class BasicConversationsChannel {
     newMessage.uuid = uuid;
     await DatabaseHelper().messagesDao?.insertOrReplace(newMessage);
     _updateConversationLastMessage(newMessage.conversationSid!);
+    _updateListMessage(newMessage);
+  }
+
+  void _updateListMessage(MessageDataItem message) {
     final index = messages.indexWhere((element) {
-      if (newMessage.uuid?.isNotEmpty == true) {
-        return element.uuid == newMessage.uuid || element.sid == newMessage.sid;
+      if (message.uuid?.isNotEmpty == true) {
+        return element.uuid == message.uuid || element.sid == message.sid;
       } else {
-        return element.sid == newMessage.sid;
+        return element.sid == message.sid;
       }
     });
     if (index != -1) {
-      messages.removeAt(index);
-      messages.insert(index, message);
+      if (messages[index].type == 1) {
+        messages.removeAt(index);
+        messages.insert(index, message);
+      }
     } else {
       messages.insert(0, message);
     }
@@ -284,6 +292,30 @@ class BasicConversationsChannel {
 
   void sendMediaFile(MessageDataItem message) async {
     _methodChannel?.invokeMethod(MethodChannelConversation.sendMediaFile, message.toMap());
+  }
+
+  Future<void> _updateMessageStatus(MessageDataItem message) async {
+    await DatabaseHelper().messagesDao?.updateMessageStatus(message.uuid!, message.sendStatus!, message.errorCode!);
+    final data = await DatabaseHelper().messagesDao?.getMessageByUuid(message.uuid!);
+    if (data != null) {
+      _updateConversationLastMessage(data.conversationSid!);
+      _updateListMessage(message);
+    }
+  }
+
+  Future<void> _updateMessageMediaUploadStatus(MessageDataItem message) async {
+    if (message.mediaUploading != null) {
+      await DatabaseHelper().messagesDao?.updateMediaUploadStatus(message.uuid!, message.mediaUploading!);
+      final data = await DatabaseHelper().messagesDao?.getMessageByUuid(message.uuid!);
+      if (data != null) {
+        _updateConversationLastMessage(data.conversationSid!);
+        _updateListMessage(message);
+      }
+    }
+
+    if (message.mediaUploadedBytes != null) {
+      DatabaseHelper().messagesDao?.updateMediaUploadedBytes(message.uuid!, message.mediaUploadedBytes!);
+    }
   }
 }
 
@@ -309,4 +341,6 @@ class MethodChannelConversation {
   static const String updateMessage = "updateMessage";
   static const String reactionMessage = "reactionMessage";
   static const String sendMediaFile = "sendMediaFile";
+  static const String updateMessageStatus = "updateMessageStatus";
+  static const String updateMessageMediaUploadStatus = "updateMessageMediaUploadStatus";
 }

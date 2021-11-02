@@ -138,6 +138,14 @@ class HandleChatMethodChannel: HandleMethodChatListener {
     override fun reactionFailed() {
         flutterResult?.success(false)
     }
+
+    override fun updateMessageStatus(message: MessageDataItem) {
+        methodChannel?.invokeMethod(MethodChannelConversation.updateMessageStatus, message.toMap())
+    }
+
+    override fun updateMessageMediaUploadStatus(message: MessageDataItem) {
+        methodChannel?.invokeMethod(MethodChannelConversation.updateMessageMediaUploadStatus, message.toMap())
+    }
 }
 
 class MethodChannelConversation {
@@ -163,6 +171,8 @@ class MethodChannelConversation {
         const val updateMessage = "updateMessage"
         const val reactionMessage = "reactionMessage"
         const val sendMediaFile = "sendMediaFile"
+        const val updateMessageStatus = "updateMessageStatus"
+        const val updateMessageMediaUploadStatus = "updateMessageMediaUploadStatus"
     }
 }
 
@@ -186,4 +196,6 @@ interface HandleMethodChatListener {
     fun updateMessage(message: MessageDataItem)
     fun reactionSuccess()
     fun reactionFailed()
+    fun updateMessageStatus(message: MessageDataItem)
+    fun updateMessageMediaUploadStatus(message: MessageDataItem)
 }

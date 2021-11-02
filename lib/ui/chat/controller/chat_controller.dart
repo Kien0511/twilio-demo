@@ -93,7 +93,7 @@ class ChatController extends GetxController {
   }
 
   Future<void> pickMedia() async {
-    final file = await ImagePicker().pickImage(source: ImageSource.gallery);
+    final file = await ImagePicker().pickVideo(source: ImageSource.camera);
     if (file?.path != null) {
       print("${file?.path}");
       MessageDataItem message = MessageDataItem.fromMap({

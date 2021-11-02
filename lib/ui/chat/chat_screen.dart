@@ -238,10 +238,10 @@ class ChatScreen extends GetView<ChatController> {
                                   style: TextStyle(
                                       fontSize: 16.0, fontWeight: FontWeight.bold),
                                 ),
-                                Text(
+                                message.mediaSize != null ? Text(
                                   "${message.mediaSize?.toFileSize()}",
                                   style: TextStyle(color: Colors.grey[600]),
-                                )
+                                ) : SizedBox()
                               ],
                             ),
                           ),

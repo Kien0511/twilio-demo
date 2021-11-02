@@ -9,7 +9,7 @@ class MessageDataItem(
     val index: Long?,
     val attributes: String?,
     val direction: Int?,
-    val sendStatus: Int?,
+    var sendStatus: Int?,
     val uuid: String?,
     val mediaSid: String? = null,
     val mediaFileName: String? = null,
@@ -19,10 +19,10 @@ class MessageDataItem(
     val mediaDownloadId: Long? = null,
     val mediaDownloadedBytes: Long? = null,
     val mediaDownloadState: Int? = 0,
-    val mediaUploading: Boolean? = false,
-    val mediaUploadedBytes: Long? = null,
+    var mediaUploading: Boolean? = false,
+    var mediaUploadedBytes: Long? = null,
     val mediaUploadUri: String? = null,
-    val errorCode: Int? = 0,
+    var errorCode: Int? = 0,
     val filePath: String? = null
 ) {
     companion object {

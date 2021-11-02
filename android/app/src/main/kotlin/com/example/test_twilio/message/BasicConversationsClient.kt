@@ -3,6 +3,7 @@ package com.example.test_twilio.message
 import ConversationsCallbackListener
 import ConversationsStatusListener
 import MessageDataItem
+import android.net.Uri
 import android.util.Log
 import android.webkit.MimeTypeMap
 import com.example.test_twilio.HandleMethodChatListener
@@ -258,40 +259,42 @@ class BasicConversationsClient: ConversationsClientListener {
     }
 
     fun sendTextMessage(message: MessageDataItem) {
-        conversationsClient?.getConversation(message.conversationSid, ConversationsCallbackListener(
-            success = { conversation ->
-                val identity = conversationsClient!!.myIdentity
-                val participantSid = conversation.getParticipantByIdentity(conversationsClient!!.myIdentity).sid
-                val attributes = Attributes(message.uuid!!)
-                val options = Message.options().withBody(message.body).withAttributes(attributes)
-                val newMessage = MessageDataItem(
-                    sid = "",
-                    conversationSid = conversation.sid,
-                    participantSid = participantSid,
-                    type = Message.Type.TEXT.value,
-                    author = identity,
-                    dateCreated = Date().time,
-                    body = message.body,
-                    index = -1,
-                    attributes = attributes.toString(),
-                    direction = Direction.OUTGOING.value,
-                    sendStatus = SendStatus.SENDING.value,
-                    uuid = message.uuid
+        CoroutineScope(Dispatchers.IO).launch {
+            conversationsClient?.getConversation(message.conversationSid, ConversationsCallbackListener(
+                success = { conversation ->
+                    val identity = conversationsClient!!.myIdentity
+                    val participantSid = conversation.getParticipantByIdentity(conversationsClient!!.myIdentity).sid
+                    val attributes = Attributes(message.uuid!!)
+                    val options = Message.options().withBody(message.body).withAttributes(attributes)
+                    val newMessage = MessageDataItem(
+                        sid = "",
+                        conversationSid = conversation.sid,
+                        participantSid = participantSid,
+                        type = Message.Type.TEXT.value,
+                        author = identity,
+                        dateCreated = Date().time,
+                        body = message.body,
+                        index = -1,
+                        attributes = attributes.toString(),
+                        direction = Direction.OUTGOING.value,
+                        sendStatus = SendStatus.SENDING.value,
+                        uuid = message.uuid
                     )
-                listener?.insertMessage(newMessage)
-                conversation.sendMessage(options, ConversationsCallbackListener(
-                    success = {
-                        listener?.updateMessageByUuid(it.toMessageDataItem(identity, message.uuid))
-                    },
-                    fail = { errorInfo ->
-                        Log.e(this@BasicConversationsClient.javaClass.simpleName, "sendMessage $errorInfo")
-                    }
-                ))
-            },
-            fail = { errorInfo ->
-                Log.e(this@BasicConversationsClient.javaClass.simpleName, "sendTextMessage $errorInfo")
-            }
-        ))
+                    listener?.insertMessage(newMessage)
+                    conversation.sendMessage(options, ConversationsCallbackListener(
+                        success = {
+                            listener?.updateMessageByUuid(it.toMessageDataItem(identity, message.uuid))
+                        },
+                        fail = { errorInfo ->
+                            Log.e(this@BasicConversationsClient.javaClass.simpleName, "sendMessage $errorInfo")
+                        }
+                    ))
+                },
+                fail = { errorInfo ->
+                    Log.e(this@BasicConversationsClient.javaClass.simpleName, "sendTextMessage $errorInfo")
+                }
+            ))
+        }
     }
 
     fun addMessage(message: Message) {
@@ -382,18 +385,55 @@ class BasicConversationsClient: ConversationsClientListener {
             kotlin.runCatching {
                 message.filePath?.let { filePath ->
                     val file = File(filePath)
-                    val name = file.name
+                    val name = "${file.name}_${Date().time}"
                     val type = getMimeType(filePath)
                     val stream = FileInputStream(file)
+                    val uri = Uri.fromFile(file).toString()
 
                     val identity = conversationsClient?.myIdentity
                     conversationsClient?.getConversation(message.conversationSid, ConversationsCallbackListener(
                         success = { conversation ->
                             val participantSid = conversation.getParticipantByIdentity(identity).sid
-
+                            val attributes = Attributes(message.uuid!!)
+                            val options = getMediaMessageOptions(uri, stream, name, type, message)
+                            val messageData = MessageDataItem(
+                                sid = "",
+                                conversationSid = message.conversationSid,
+                                participantSid = participantSid,
+                                type = Message.Type.MEDIA.value,
+                                author = identity,
+                                dateCreated = Date().time,
+                                body = null,
+                                index = -1,
+                                attributes = attributes.toString(),
+                                direction = Direction.OUTGOING.value,
+                                sendStatus = SendStatus.SENDING.value,
+                                uuid = message.uuid,
+                                mediaFileName = name,
+                                mediaUploadUri = uri,
+                                mediaType = type,
+                            )
+                            listener?.insertMessage(messageData)
+                            conversation.sendMessage(options, ConversationsCallbackListener(
+                                success = { sentMessage ->
+                                    Log.e(this@BasicConversationsClient.javaClass.simpleName, "sendMediaFile success")
+                                    listener?.updateMessageByUuid(sentMessage.toMessageDataItem(identity!!, message.uuid))
+                                },
+                                fail = { errorInfo ->
+                                    Log.e(this@BasicConversationsClient.javaClass.simpleName, "sendMediaFile $errorInfo")
+                                    val newMessage = MessageDataItem.fromMap(message.toMap())
+                                    newMessage.sendStatus = SendStatus.ERROR.value
+                                    newMessage.errorCode = errorInfo.code
+                                    listener?.updateMessageStatus(newMessage)
+                                }
+                            ))
                         },
-                        fail = {
-
+                        fail = { errorInfo ->
+                            Log.e(this@BasicConversationsClient.javaClass.simpleName, "sendMediaFile $errorInfo")
+                            val newMessage = MessageDataItem.fromMap(message.toMap())
+                            newMessage.sendStatus = SendStatus.ERROR.value
+                            newMessage.errorCode = errorInfo.code
+                            listener?.updateMessageStatus(newMessage)
                         }
                     ))
                 }
@@ -406,23 +446,31 @@ class BasicConversationsClient: ConversationsClientListener {
         inputStream: InputStream,
         fileName: String?,
         mimeType: String?,
-        messageUuid: String
+        message: MessageDataItem
     ): Message.Options {
-        val attributes = Attributes(messageUuid)
+        val attributes = Attributes(message.uuid!!)
         var options = Message.options().withMedia(inputStream, mimeType).withAttributes(attributes)
             .withMediaProgressListener(object : ProgressListener{
                 override fun onStarted() {
-                    TODO("Not yet implemented")
+                    Log.e(this@BasicConversationsClient.javaClass.simpleName, "upload started $uri")
+                    val newMessage = MessageDataItem.fromMap(message.toMap())
+                    newMessage.mediaUploading = true
+                    listener?.updateMessageMediaUploadStatus(newMessage)
                 }
 
                 override fun onProgress(bytes: Long) {
-                    TODO("Not yet implemented")
+                    Log.e(this@BasicConversationsClient.javaClass.simpleName, "upload progress $uri: $bytes")
+                    val newMessage = MessageDataItem.fromMap(message.toMap())
+                    newMessage.mediaUploadedBytes = bytes
+                    listener?.updateMessageMediaUploadStatus(newMessage)
                 }
 
                 override fun onCompleted(mediaSid: String?) {
-                    TODO("Not yet implemented")
+                    Log.e(this@BasicConversationsClient.javaClass.simpleName, "upload $uri completed")
+                    val newMessage = MessageDataItem.fromMap(message.toMap())
+                    newMessage.mediaUploading = false
+                    listener?.updateMessageMediaUploadStatus(newMessage)
                 }
-
             })
         if (fileName != null) {
             options = options.withMediaFileName(fileName)
