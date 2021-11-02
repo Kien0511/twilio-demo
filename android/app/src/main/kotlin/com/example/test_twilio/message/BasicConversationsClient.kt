@@ -4,6 +4,7 @@ import ConversationsCallbackListener
 import ConversationsStatusListener
 import MessageDataItem
 import android.util.Log
+import android.webkit.MimeTypeMap
 import com.example.test_twilio.HandleMethodChatListener
 import com.example.test_twilio.TwilioApplication
 import com.example.test_twilio.common.enums.Direction
@@ -11,6 +12,13 @@ import com.example.test_twilio.common.enums.SendStatus
 import com.example.test_twilio.common.extensions.toConversationDataItem
 import com.example.test_twilio.common.extensions.toMessageDataItem
 import com.twilio.conversations.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import org.json.JSONObject
+import java.io.File
+import java.io.FileInputStream
+import java.io.InputStream
 import java.util.*
 
 class BasicConversationsClient: ConversationsClientListener {
@@ -336,5 +344,97 @@ class BasicConversationsClient: ConversationsClientListener {
         identity?.let {
             listener?.updateMessage(message.toMessageDataItem(identity))
         }
+    }
+
+    fun reactionMessage(message: MessageDataItem) {
+        conversationsClient?.getConversation(message.conversationSid, ConversationsCallbackListener(
+            success = { conversation ->
+                message.index?.let { index ->
+                    conversation.getMessageByIndex(index, ConversationsCallbackListener(
+                        success = {
+                            it.setAttributes(Attributes(JSONObject(message.attributes!!)), ConversationsStatusListener(
+                                success = {
+                                    Log.e(this@BasicConversationsClient.javaClass.simpleName, "reactionMessage Success")
+                                    listener?.reactionSuccess()
+                                },
+                                fail = { errorInfo ->
+                                    Log.e(this@BasicConversationsClient.javaClass.simpleName, "reactionMessage $errorInfo")
+                                    listener?.reactionFailed()
+                                }
+                            ))
+                        },
+                        fail = { errorInfo ->
+                            Log.e(this@BasicConversationsClient.javaClass.simpleName, "reactionMessage $errorInfo")
+                            listener?.reactionFailed()
+                        }
+                    ))
+                }
+            },
+            fail = { errorInfo ->
+                Log.e(this@BasicConversationsClient.javaClass.simpleName, "reactionMessage $errorInfo")
+                listener?.reactionFailed()
+            }
+        ))
+    }
+
+    fun sendMediaFile(message: MessageDataItem) {
+        CoroutineScope(Dispatchers.IO).launch {
+            kotlin.runCatching {
+                message.filePath?.let { filePath ->
+                    val file = File(filePath)
+                    val name = file.name
+                    val type = getMimeType(filePath)
+                    val stream = FileInputStream(file)
+
+                    val identity = conversationsClient?.myIdentity
+                    conversationsClient?.getConversation(message.conversationSid, ConversationsCallbackListener(
+                        success = { conversation ->
+                            val participantSid = conversation.getParticipantByIdentity(identity).sid
+
+                        },
+                        fail = {
+
+                        }
+                    ))
+                }
+            }
+        }
+    }
+
+    private fun getMediaMessageOptions(
+        uri: String,
+        inputStream: InputStream,
+        fileName: String?,
+        mimeType: String?,
+        messageUuid: String
+    ): Message.Options {
+        val attributes = Attributes(messageUuid)
+        var options = Message.options().withMedia(inputStream, mimeType).withAttributes(attributes)
+            .withMediaProgressListener(object : ProgressListener{
+                override fun onStarted() {
+                    TODO("Not yet implemented")
+                }
+
+                override fun onProgress(bytes: Long) {
+                    TODO("Not yet implemented")
+                }
+
+                override fun onCompleted(mediaSid: String?) {
+                    TODO("Not yet implemented")
+                }
+
+            })
+        if (fileName != null) {
+            options = options.withMediaFileName(fileName)
+        }
+        return options
+    }
+
+
+    private fun getMimeType(url: String?): String? {
+        val type: String?
+        val extension: String = MimeTypeMap.getFileExtensionFromUrl(url)
+        type = MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension)
+        return type
     }
 }

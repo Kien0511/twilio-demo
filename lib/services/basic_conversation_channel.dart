@@ -257,7 +257,13 @@ class BasicConversationsChannel {
     newMessage.uuid = uuid;
     await DatabaseHelper().messagesDao?.insertOrReplace(newMessage);
     _updateConversationLastMessage(newMessage.conversationSid!);
-    final index = messages.indexWhere((element) => element.uuid == newMessage.uuid || element.sid == newMessage.sid);
+    final index = messages.indexWhere((element) {
+      if (newMessage.uuid?.isNotEmpty == true) {
+        return element.uuid == newMessage.uuid || element.sid == newMessage.sid;
+      } else {
+        return element.sid == newMessage.sid;
+      }
+    });
     if (index != -1) {
       messages.removeAt(index);
       messages.insert(index, message);
@@ -265,6 +271,19 @@ class BasicConversationsChannel {
       messages.insert(0, message);
     }
     _onUpdateListMessage?.call();
+  }
+
+  Future<bool> reactionMessage(MessageDataItem message) async {
+    try {
+      final result = await _methodChannel?.invokeMethod(MethodChannelConversation.reactionMessage, message.toMap());
+      return result;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  void sendMediaFile(MessageDataItem message) async {
+    _methodChannel?.invokeMethod(MethodChannelConversation.sendMediaFile, message.toMap());
   }
 }
 
@@ -288,4 +307,6 @@ class MethodChannelConversation {
   static const String deleteMessage = "deleteMessage";
   static const String removeMessage = "removeMessage";
   static const String updateMessage = "updateMessage";
+  static const String reactionMessage = "reactionMessage";
+  static const String sendMediaFile = "sendMediaFile";
 }

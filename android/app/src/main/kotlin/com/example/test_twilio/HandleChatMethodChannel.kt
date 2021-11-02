@@ -53,6 +53,12 @@ class HandleChatMethodChannel: HandleMethodChatListener {
                 MethodChannelConversation.removeMessage -> {
                     BasicConversationsClient.getInstance().removeMessage(MessageDataItem.fromMap(call.arguments as HashMap<String, Any?>))
                 }
+                MethodChannelConversation.reactionMessage -> {
+                    BasicConversationsClient.getInstance().reactionMessage(MessageDataItem.fromMap(call.arguments as HashMap<String, Any?>))
+                }
+                MethodChannelConversation.sendMediaFile -> {
+                    BasicConversationsClient.getInstance().sendMediaFile(MessageDataItem.fromMap(call.arguments as HashMap<String, Any?>))
+                }
             }
         }
     }
@@ -124,6 +130,14 @@ class HandleChatMethodChannel: HandleMethodChatListener {
     override fun updateMessage(message: MessageDataItem) {
         methodChannel?.invokeMethod(MethodChannelConversation.updateMessage, message.toMap())
     }
+
+    override fun reactionSuccess() {
+        flutterResult?.success(true)
+    }
+
+    override fun reactionFailed() {
+        flutterResult?.success(false)
+    }
 }
 
 class MethodChannelConversation {
@@ -147,6 +161,8 @@ class MethodChannelConversation {
         const val deleteMessage = "deleteMessage"
         const val removeMessage = "removeMessage"
         const val updateMessage = "updateMessage"
+        const val reactionMessage = "reactionMessage"
+        const val sendMediaFile = "sendMediaFile"
     }
 }
 
@@ -168,4 +184,6 @@ interface HandleMethodChatListener {
     fun removeMessageSuccess()
     fun removeMessageFailed()
     fun updateMessage(message: MessageDataItem)
+    fun reactionSuccess()
+    fun reactionFailed()
 }

@@ -52,7 +52,12 @@ class ChatScreen extends GetView<ChatController> {
       padding: EdgeInsets.all(16.0),
       child: Row(
         children: [
-          Icon(Icons.attachment_rounded),
+          InkWell(
+            onTap: () {
+              controller.pickMedia();
+            },
+            child: Icon(Icons.attachment_rounded)
+          ),
           SizedBox(width: 16.0,),
           Expanded(
               child: TextFormField(
@@ -108,10 +113,35 @@ class ChatScreen extends GetView<ChatController> {
           constraints: BoxConstraints(
               maxWidth: 256.0
           ),
-          child: message.type == 1? _buildMediaMessage(message) : Container(
-              color: Colors.red,
-              padding: EdgeInsets.only(left: 8.0, right: 8.0, top: 4.0, bottom: 4.0),
-              child: Text("${message.body}")),
+          child: message.type == 1? _buildMediaMessage(message, mainAxisAlignment: MainAxisAlignment.start) : Stack(
+            alignment: Alignment.bottomLeft,
+            children: [
+              Container(
+                margin: EdgeInsets.only(bottom: 16.0),
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(8.0),
+                  onLongPress: () {
+                    controller.showMessageListAction(message);
+                  },
+                  child: Container(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(8.0),
+                        color: Colors.grey[300],
+                      ),
+                      padding: EdgeInsets.only(top: 12.0, bottom: 12.0, left: 8.0, right: 8.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text("${message.body}"),
+                          SizedBox(height: 8.0,),
+                          Text("${message.dateCreated?.toDateTime().toDateString()}", style: TextStyle(fontSize: 12.0, color: Colors.black),)
+                        ],
+                      )),
+                ),
+              ),
+              _buildReaction(message, mainAxisAlignment: MainAxisAlignment.start),
+            ],
+          ),
         )
       ],
     );
@@ -125,12 +155,13 @@ class ChatScreen extends GetView<ChatController> {
           constraints: BoxConstraints(
               maxWidth: 256.0
           ),
-          child: message.type == 1? _buildMediaMessage(message) : Stack(
+          child: message.type == 1? _buildMediaMessage(message, currentMessage: true) : Stack(
             alignment: Alignment.bottomRight,
             children: [
               Container(
                 margin: EdgeInsets.only(bottom: 16.0),
                 child: InkWell(
+                  borderRadius: BorderRadius.circular(8.0),
                   onLongPress: () {
                     controller.showMessageListAction(message);
                   },
@@ -165,75 +196,82 @@ class ChatScreen extends GetView<ChatController> {
     );
   }
 
-  Widget _buildMediaMessage(MessageDataItem message) {
+  Widget _buildMediaMessage(MessageDataItem message, {MainAxisAlignment mainAxisAlignment = MainAxisAlignment.end, bool currentMessage = false}) {
     return Stack(
       alignment: Alignment.bottomRight,
       children: [
         Container(
-          height: 100.0,
           margin: EdgeInsets.only(bottom: 16.0),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(8.0),
-            color: message.author == author ? Colors.blue[900] : Colors.grey[350]
-          ),
-          padding: EdgeInsets.only(top: 12.0, bottom: 12.0, left: 8.0, right: 8.0),
-          child: Column(
-            children: [
-              Expanded(
-                child: Container(
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(8.0),
-                    color: Colors.white
-                  ),
-                  child: Row(
-                    children: [
-                      Container(
-                        width: 48.0,
-                          child: Icon(Icons.download_rounded)),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text(
-                              "${message.mediaFileName}",
-                              overflow: TextOverflow.ellipsis,
-                              maxLines: 1,
-                              style: TextStyle(
-                                  fontSize: 16.0, fontWeight: FontWeight.bold),
-                            ),
-                            Text(
-                              "${message.mediaSize?.toFileSize()}",
-                              style: TextStyle(color: Colors.grey[600]),
-                            )
-                          ],
-                        ),
+          child: InkWell(
+            onLongPress: () {
+              controller.showMessageListAction(message);
+            },
+            child: Container(
+              height: 100.0,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(8.0),
+                color: message.author == author ? Colors.blue[900] : Colors.grey[350]
+              ),
+              padding: EdgeInsets.only(top: 12.0, bottom: 12.0, left: 8.0, right: 8.0),
+              child: Column(
+                children: [
+                  Expanded(
+                    child: Container(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(8.0),
+                        color: Colors.white
                       ),
+                      child: Row(
+                        children: [
+                          Container(
+                            width: 48.0,
+                              child: Icon(Icons.download_rounded)),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text(
+                                  "${message.mediaFileName}",
+                                  overflow: TextOverflow.ellipsis,
+                                  maxLines: 1,
+                                  style: TextStyle(
+                                      fontSize: 16.0, fontWeight: FontWeight.bold),
+                                ),
+                                Text(
+                                  "${message.mediaSize?.toFileSize()}",
+                                  style: TextStyle(color: Colors.grey[600]),
+                                )
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: 8.0,),
+                  Row(
+                    children: [
+                      Text("${message.dateCreated?.toDateTime().toDateString()}", style: TextStyle(fontSize: 12.0, color: currentMessage ? Colors.white : Colors.black),),
+                      SizedBox(width: 8.0,),
+                      SendStatus(message.sendStatus)
                     ],
                   ),
-                ),
-              ),
-              SizedBox(height: 8.0,),
-              Row(
-                children: [
-                  Text("${message.dateCreated?.toDateTime().toDateString()}", style: TextStyle(fontSize: 12.0, color: Colors.white),),
-                  SizedBox(width: 8.0,),
-                  SendStatus(message.sendStatus)
                 ],
               ),
-            ],
+            ),
           ),
         ),
-        _buildReaction(message)
+        _buildReaction(message, mainAxisAlignment: mainAxisAlignment)
       ],
     );
   }
 
-  Widget _buildReaction(MessageDataItem message) {
+  Widget _buildReaction(MessageDataItem message, {MainAxisAlignment mainAxisAlignment = MainAxisAlignment.end}) {
     final reactions = message.toReactionAttribute()?.reactions;
     return reactions != null ? Container(
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.end,
+        mainAxisAlignment: mainAxisAlignment,
         children: [
           reactions.heart?.isNotEmpty == true ? EmojiText(text: Reaction.reactionHeart, count: reactions.heart?.length) : SizedBox(),
           reactions.thumbsUp?.isNotEmpty == true ? EmojiText(text: Reaction.reactionThumbsUp, count: reactions.thumbsUp?.length) : SizedBox(),

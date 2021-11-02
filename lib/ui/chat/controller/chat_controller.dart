@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:test_twilio/data/database_helper.dart';
 import 'package:test_twilio/data/entity/conversation_data_item.dart';
 import 'package:test_twilio/data/entity/message_data_item.dart';
@@ -70,8 +71,11 @@ class ChatController extends GetxController {
 
   void showMessageListAction(MessageDataItem message) {
     Get.bottomSheet(MessageListAction(
-      onUpdateMessage: () {
-
+      message: message,
+      onReactionSelected: (newMessage) async {
+        print(newMessage);
+        final result = await BasicConversationsChannel().reactionMessage(newMessage!);
+        print("reaction $result");
       },
       onDeleteMessage: () async {
         final result = await BasicConversationsChannel().removeMessage(message);
@@ -86,5 +90,20 @@ class ChatController extends GetxController {
 
   void videoCall() {
     Get.toNamed(RouteName.videoCall);
+  }
+
+  Future<void> pickMedia() async {
+    final file = await ImagePicker().pickImage(source: ImageSource.gallery);
+    if (file?.path != null) {
+      print("${file?.path}");
+      MessageDataItem message = MessageDataItem.fromMap({
+        "conversationSid": conversationDataItem.sid,
+        "uuid": Uuid().v4(),
+        "filePath": file?.path
+      });
+      BasicConversationsChannel().sendMediaFile(message);
+    } else {
+      print("cancel picker");
+    }
   }
 }

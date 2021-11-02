@@ -16,6 +16,19 @@ class ReactionAttribute {
     }
     return data;
   }
+
+  Reactions? addReaction(String reactionName, String author) {
+    if (reactions == null) {
+      reactions = Reactions();
+    }
+    reactions?.addReaction(reactionName, author);
+    return reactions;
+  }
+
+  Reactions? removeReaction(String reactionName, String author) {
+    reactions?.removeReaction(reactionName, author);
+    return reactions;
+  }
 }
 
 class Reactions {
@@ -53,6 +66,70 @@ class Reactions {
     data['thumbs_down'] = this.thumbsDown;
     return data;
   }
+
+  void addReaction(String reactionName, String author) {
+    switch (reactionName) {
+      case ReactionName.reactionHeart:
+        if (heart == null) {
+          heart = [];
+        }
+        heart?.add(author);
+        break;
+      case ReactionName.reactionThumbsUp:
+        if (thumbsUp == null) {
+          thumbsUp = [];
+        }
+        thumbsUp?.add(author);
+        break;
+      case ReactionName.reactionLaugh:
+        if (laugh == null) {
+          laugh = [];
+        }
+        laugh?.add(author);
+        break;
+      case ReactionName.reactionSad:
+        if (sad == null) {
+          sad = [];
+        }
+        sad?.add(author);
+        break;
+      case ReactionName.reactionPouting:
+        if (pouting == null) {
+          pouting = [];
+        }
+        pouting?.add(author);
+        break;
+      case ReactionName.reactionThumbsDown:
+        if (thumbsDown == null) {
+          thumbsDown = [];
+        }
+        thumbsDown?.add(author);
+        break;
+    }
+  }
+
+  void removeReaction(String reactionName, String author) {
+    switch (reactionName) {
+      case ReactionName.reactionHeart:
+        heart?.remove(author);
+        break;
+      case ReactionName.reactionThumbsUp:
+        thumbsUp?.remove(author);
+        break;
+      case ReactionName.reactionLaugh:
+        laugh?.remove(author);
+        break;
+      case ReactionName.reactionSad:
+        sad?.remove(author);
+        break;
+      case ReactionName.reactionPouting:
+        pouting?.remove(author);
+        break;
+      case ReactionName.reactionThumbsDown:
+        thumbsDown?.remove(author);
+        break;
+    }
+  }
 }
 
 class Reaction {
@@ -62,4 +139,13 @@ class Reaction {
   static const String reactionPouting = "😡";
   static const String reactionThumbsUp = "👍";
   static const String reactionThumbsDown = "👎";
+}
+
+class ReactionName {
+  static const String reactionHeart = "heart";
+  static const String reactionLaugh = "laugh";
+  static const String reactionSad = "sad";
+  static const String reactionPouting = "pouting";
+  static const String reactionThumbsUp = "thumbs_up";
+  static const String reactionThumbsDown = "thumbs_down";
 }

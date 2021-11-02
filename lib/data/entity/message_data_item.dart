@@ -30,6 +30,8 @@ class MessageDataItem {
   int? mediaUploadedBytes;
   String? mediaUploadUri;
   int? errorCode = 0;
+  @ignore
+  String? filePath;
 
   @ignore
   MessageDataItem.fromMap(Map<String, dynamic> data) {
@@ -57,6 +59,7 @@ class MessageDataItem {
     mediaUploadedBytes = data["mediaUploadedBytes"]?.toString().toInt();
     mediaUploadUri = data["mediaUploadUri"]?.toString();
     errorCode = data["errorCode"]?.toString().toInt();
+    filePath = data["filePath"]?.toString();
   }
 
   @ignore
@@ -87,6 +90,7 @@ class MessageDataItem {
     data["mediaUploadedBytes"] = mediaUploadedBytes;
     data["mediaUploadUri"] = mediaUploadUri;
     data["errorCode"] = errorCode;
+    data["filePath"] = filePath;
     return data;
   }
 

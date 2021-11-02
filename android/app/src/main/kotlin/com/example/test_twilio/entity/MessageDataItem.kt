@@ -22,7 +22,8 @@ class MessageDataItem(
     val mediaUploading: Boolean? = false,
     val mediaUploadedBytes: Long? = null,
     val mediaUploadUri: String? = null,
-    val errorCode: Int? = 0
+    val errorCode: Int? = 0,
+    val filePath: String? = null
 ) {
     companion object {
         fun fromMap(data: HashMap<String, Any?>): MessageDataItem {
@@ -51,8 +52,9 @@ class MessageDataItem(
                 mediaUploadedBytes = data["mediaUploadedBytes"]?.toString()?.toLong(),
                 mediaUploadUri = data["mediaUploadUri"]?.toString(),
                 errorCode = data["errorCode"]?.toString()?.toInt(),
+                filePath = data["filePath"]?.toString(),
             )
-        }   
+        }
     }
     
     fun toMap() : HashMap<String, Any?> {
@@ -82,6 +84,7 @@ class MessageDataItem(
         map["mediaUploadedBytes"] = mediaUploadedBytes
         map["mediaUploadUri"] = mediaUploadUri
         map["errorCode"] = errorCode
+        map["filePath"] = filePath
         return map
     }
 }
