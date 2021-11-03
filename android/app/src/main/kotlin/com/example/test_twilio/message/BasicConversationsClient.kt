@@ -395,7 +395,6 @@ class BasicConversationsClient: ConversationsClientListener {
                         success = { conversation ->
                             val participantSid = conversation.getParticipantByIdentity(identity).sid
                             val attributes = Attributes(message.uuid!!)
-                            val options = getMediaMessageOptions(uri, stream, name, type, message)
                             val messageData = MessageDataItem(
                                 sid = "",
                                 conversationSid = message.conversationSid,
@@ -413,6 +412,7 @@ class BasicConversationsClient: ConversationsClientListener {
                                 mediaUploadUri = uri,
                                 mediaType = type,
                             )
+                            val options = getMediaMessageOptions(uri, stream, name, type, messageData, file.length())
                             listener?.insertMessage(messageData)
                             conversation.sendMessage(options, ConversationsCallbackListener(
                                 success = { sentMessage ->
@@ -423,6 +423,7 @@ class BasicConversationsClient: ConversationsClientListener {
                                     Log.e(this@BasicConversationsClient.javaClass.simpleName, "sendMediaFile $errorInfo")
                                     val newMessage = MessageDataItem.fromMap(message.toMap())
                                     newMessage.sendStatus = SendStatus.ERROR.value
+                                    newMessage.type = Message.Type.MEDIA.value
                                     newMessage.errorCode = errorInfo.code
                                     listener?.updateMessageStatus(newMessage)
                                 }
@@ -432,6 +433,7 @@ class BasicConversationsClient: ConversationsClientListener {
                             Log.e(this@BasicConversationsClient.javaClass.simpleName, "sendMediaFile $errorInfo")
                             val newMessage = MessageDataItem.fromMap(message.toMap())
                             newMessage.sendStatus = SendStatus.ERROR.value
+                            newMessage.type = Message.Type.MEDIA.value
                             newMessage.errorCode = errorInfo.code
                             listener?.updateMessageStatus(newMessage)
                         }
@@ -446,7 +448,8 @@ class BasicConversationsClient: ConversationsClientListener {
         inputStream: InputStream,
         fileName: String?,
         mimeType: String?,
-        message: MessageDataItem
+        message: MessageDataItem,
+        fileSize: Long,
     ): Message.Options {
         val attributes = Attributes(message.uuid!!)
         var options = Message.options().withMedia(inputStream, mimeType).withAttributes(attributes)
@@ -460,9 +463,11 @@ class BasicConversationsClient: ConversationsClientListener {
 
                 override fun onProgress(bytes: Long) {
                     Log.e(this@BasicConversationsClient.javaClass.simpleName, "upload progress $uri: $bytes")
-                    val newMessage = MessageDataItem.fromMap(message.toMap())
-                    newMessage.mediaUploadedBytes = bytes
-                    listener?.updateMessageMediaUploadStatus(newMessage)
+                    if (bytes == fileSize) {
+                        val newMessage = MessageDataItem.fromMap(message.toMap())
+                        newMessage.mediaUploadedBytes = bytes
+                        listener?.updateMessageMediaUploadStatus(newMessage)
+                    }
                 }
 
                 override fun onCompleted(mediaSid: String?) {

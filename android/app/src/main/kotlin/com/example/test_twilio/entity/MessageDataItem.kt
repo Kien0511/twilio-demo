@@ -2,7 +2,7 @@ class MessageDataItem(
     val sid: String?,
     val conversationSid: String?,
     val participantSid: String?,
-    val type: Int?,
+    var type: Int?,
     val author: String?,
     val dateCreated: Long?,
     val body: String?,

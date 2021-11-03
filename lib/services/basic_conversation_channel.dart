@@ -3,6 +3,7 @@ import 'package:test_twilio/data/database_helper.dart';
 import 'package:test_twilio/data/entity/conversation_data_item.dart';
 import 'package:test_twilio/data/entity/message_data_item.dart';
 import 'package:test_twilio/repository/user_chat_repository.dart';
+import 'package:test_twilio/ui/login/controller/login_controller.dart';
 
 class BasicConversationsChannel {
   static final BasicConversationsChannel _basicChatChannel = BasicConversationsChannel._internal();
@@ -223,18 +224,13 @@ class BasicConversationsChannel {
   Future<void> _updateMessageByUuid(MessageDataItem message) async {
     await DatabaseHelper().messagesDao?.updateByUuidOrInsert(message);
     _updateConversationLastMessage(message.conversationSid!);
-    final index = messages.indexWhere((element) => element.uuid == message.uuid);
-    if (index != -1) {
-      messages.removeAt(index);
-      messages.insert(index, message);
-    } else {
-      messages.insert(0, message);
-    }
-    _onUpdateListMessage?.call();
+    _updateListMessage(message);
   }
 
   void sendTextMessage(MessageDataItem message) {
     _methodChannel?.invokeMethod(MethodChannelConversation.sendTextMessage, message.toMap());
+    final result = _userChatRepository?.sendNotification(author, "message body");
+    print("result: $result");
   }
 
   Future<void> _deleteMessage(MessageDataItem message) async {
@@ -271,7 +267,10 @@ class BasicConversationsChannel {
       }
     });
     if (index != -1) {
-      if (messages[index].type == 1) {
+      if (messages[index].type == 1 && message.sendStatus != 1) {
+        messages.removeAt(index);
+        messages.insert(0, message);
+      } else {
         messages.removeAt(index);
         messages.insert(index, message);
       }
