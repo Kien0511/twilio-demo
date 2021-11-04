@@ -3,7 +3,6 @@ import 'package:test_twilio/data/database_helper.dart';
 import 'package:test_twilio/data/entity/conversation_data_item.dart';
 import 'package:test_twilio/data/entity/message_data_item.dart';
 import 'package:test_twilio/repository/user_chat_repository.dart';
-import 'package:test_twilio/ui/login/controller/login_controller.dart';
 
 class BasicConversationsChannel {
   static final BasicConversationsChannel _basicChatChannel = BasicConversationsChannel._internal();
@@ -229,8 +228,6 @@ class BasicConversationsChannel {
 
   void sendTextMessage(MessageDataItem message) {
     _methodChannel?.invokeMethod(MethodChannelConversation.sendTextMessage, message.toMap());
-    final result = _userChatRepository?.sendNotification(author, "message body");
-    print("result: $result");
   }
 
   Future<void> _deleteMessage(MessageDataItem message) async {
