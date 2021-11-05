@@ -43,6 +43,8 @@ dependencies:
   firebase_core: ^1.8.0
   flutter_local_notifications: ^9.0.2
   intl: ^0.17.0
+  flutter_callkit_incoming:
+    path: flutter_callkit_incoming
 dev_dependencies:
   flutter_test:
     sdk: flutter

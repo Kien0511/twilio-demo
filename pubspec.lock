@@ -363,6 +363,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "3.1.2"
+  flutter_callkit_incoming:
+    dependency: "direct main"
+    description:
+      path: flutter_callkit_incoming
+      relative: true
+    source: path
+    version: "1.0.0+3"
   flutter_local_notifications:
     dependency: "direct main"
     description:
